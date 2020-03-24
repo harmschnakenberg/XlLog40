@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2050
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XlLog", "XlLog\XlLog.csproj", "{2C38686A-C836-400D-B532-D05DB26A93A4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2C38686A-C836-400D-B532-D05DB26A93A4}.Debug|x86.ActiveCfg = Debug|x86
+		{2C38686A-C836-400D-B532-D05DB26A93A4}.Debug|x86.Build.0 = Debug|x86
+		{2C38686A-C836-400D-B532-D05DB26A93A4}.Release|x86.ActiveCfg = Release|x86
+		{2C38686A-C836-400D-B532-D05DB26A93A4}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {12FED4F5-1053-46A9-8DAC-EB25FE709435}
+	EndGlobalSection
+EndGlobal
