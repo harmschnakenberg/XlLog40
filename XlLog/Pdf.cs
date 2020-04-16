@@ -8,12 +8,11 @@ namespace Kreutztraeger
 {
     internal static class Pdf
     {
-
         /// <summary>
         /// Vor dieser Stunde soll nicht in PDF umgewandelt werden. Wert < 0 || Wert > 24 = nie 
         /// </summary>
-        public static int PdfConvertStartHour = 0;
-        public static string PdfConverterPath { get; set; } = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Xlsx2Pdf.exe"); // @"D:\XlLog\LibreOfficePortable\LibreOfficeCalcPortable.exe";
+        public static int PdfConvertStartHour { get; set; } = 0;
+        public static string PdfConverterPath { get; set; } = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Xl2Pdf.exe"); // @"D:\XlLog\LibreOfficePortable\LibreOfficeCalcPortable.exe";
         public static string PdfConverterArgs { get; set; } = "*Quelle* *Ziel*"; //"-calc -invisible -convert-to pdf \"*Quelle*\" -outdir \"*Ziel*\"";
 
         /// <summary>

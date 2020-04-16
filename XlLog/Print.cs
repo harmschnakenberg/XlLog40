@@ -16,7 +16,7 @@ namespace Kreutztraeger
         private static int printStartHour = 4;
         internal static int PrintStartHour { get => printStartHour; set => printStartHour = value; }
 
-        private static string printAppPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "XlsxPrint.exe");
+        private static string printAppPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PdfToPrinter.exe");
         internal static string PrintAppPath { get => printAppPath; set => printAppPath = value; }
 
         internal static string PrinterAppArgs { get; set; } = "*Quelle*";

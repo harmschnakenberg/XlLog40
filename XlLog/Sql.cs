@@ -10,9 +10,8 @@ using System.Drawing;
 namespace Kreutztraeger
 {
     class Sql
-    {
-        private static string xmlDir;
-        public static string XmlDir { get => xmlDir; set => xmlDir = value; } 
+    {        
+        public static string XmlDir { get; set; } = @"D:\Into_110\PROJEKTNAME\XML";
         const string ConnString = @"Data Source=.\sqlexpress; Initial Catalog = WWALMDB; User ID = wwAdmin; Password=wwAdmin";
         static string DBGruppe = "A00_General";
         static string DBGruppeComment = "unbekannt";

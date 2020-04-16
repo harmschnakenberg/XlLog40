@@ -24,30 +24,33 @@ namespace Kreutztraeger
                 {
                     w.WriteLine("[" + w.Encoding.ToString() + "]\r\n" +
                                 "[Allgemein]\r\n" +
-                                ";DebugWord=0\r\n" +
-                                ";WaitToClose=20\r\n" +
-                                ";WaitForScripts=10\r\n" +
+                                ";DebugWord=" + Log.DebugWord + "\r\n" + 
+                                ";WaitToClose=" + Tools.WaitToClose + "\r\n" + 
+                                ";WaitForScripts=" + Tools.WaitForScripts + "\r\n" +
 
                                 "\r\n[InTouch]\r\n" +
-                                ";InTouchDiscFlag=XlLogUse\r\n" +
-                                ";InTouchDiscAlarm=XlLogAlarm\r\n" +
-                                ";InTouchDiscTimeOut=XlLogTimeoutBit\r\n" +
+                                ";InTouchDiscFlag=" + Program.XlLogFlag + "\r\n" + 
+                                ";InTouchDiscAlarm="+ Program.InTouchDiscAlarm + "\r\n" +
+                                ";InTouchDiscTimeOut=" + Program.InTouchDiscTimeOut + "\r\n" + 
 
-                                "\r\n[Pfade]\r\n;" +
-                                ";XlArchiveDir=D:\\Archiv\r\n" +
-                                ";XmlDir=D:\\Into_110\\PROJEKTNAME\\XML\r\n" +
+                                "\r\n[Pfade]\r\n" +
+                                ";XlArchiveDir=" + Excel.XlArchiveDir + "\r\n" +
+                                ";XmlDir=" + Sql.XmlDir + "\r\n" + 
 
                                 "\r\n[Vorlagen]\r\n" +
-                                ";XlTemplateDayFilePath=D:\\XlLog\\T_vorl.xlsx\r\n" +
-                                ";XlTemplateMonthFilePath=D:\\XlLog\\M_vorl.xlsx\r\n" +
-                                ";XlPassword=Password\r\n" +
-                                ";XlDayFileFirstRowToWrite=10\r\n" +
-                                ";XlMonthFileFirstRowToWrite=8\r\n" +
-                                ";XlPosOffsetMin=5\r\n" +
-                                ";XlNegOffsetMin=5\r\n" +
+                                ";XlTemplateDayFilePath=" + Excel.XlTemplateDayFilePath + "\r\n" +
+                                ";XlTemplateMonthFilePath=" + Excel.XlTemplateMonthFilePath + "\r\n" +
+                                ";XlPassword=" + Excel.XlPassword + "\r\n" +
+                                ";XlDayFileFirstRowToWrite=" + Excel.XlDayFileFirstRowToWrite + "\r\n" +
+                                ";XlMonthFileFirstRowToWrite=" + Excel.XlMonthFileFirstRowToWrite + "\r\n" +
+                                ";XlPosOffsetMin=" + Excel.XlPosOffsetMin + "\r\n" +
+                                ";XlNegOffsetMin=" + Excel.XlNegOffsetMin + "\r\n" +
 
                                 "\r\n[PDF]\r\n" +
-                                ";PdfConvertStartHour=0\r\n" +
+                                ";PdfConvertStartHour=" + Pdf.PdfConvertStartHour + "\r\n" +
+                                ";PdfConverterPath=" + Pdf.PdfConverterPath + "\r\n" +
+                                ";PdfConverterArgs=" + Pdf.PdfConverterArgs + "\r\n\r\n" +
+                                
                                 ";PdfConverterPath=D:\\XlLog\\LibreOfficePortable\\LibreOfficeCalcPortable.exe\r\n" +
                                 ";PdfConverterArgs=- calc - invisible - convert - to pdf \"*Quelle*\" -outdir \"*Ziel*\"\r\n" +
                                 ";PdfConverterPath=D:\\XlLog\\XlOffice2Pdf.exe\r\n" +
@@ -56,8 +59,11 @@ namespace Kreutztraeger
                                 ";PdfConverterArgs=*Quelle* *Ziel*\r\n" +
 
                                 "\r\n[Druck]\r\n" +
-                                ";PrintStartHour=4\r\n" +
-                                ";PrintAppPath=D:\\XlLog\\XlOfficePrint.exe\r\n" +
+                                ";PrintStartHour=" + Print.PrintStartHour + "\r\n" +
+                                ";PrintAppPath=" + Print.PrintAppPath + "\r\n" +
+                                ";PrintAppArgs=" + Print.PrinterAppArgs + "\r\n\r\n" +
+
+                                ";PrintAppPath=D:\\XlLog\\XlOfficePrint.exe\r\n" + 
                                 ";PrintAppPath=D:\\XlLog\\PdfToPrinter.exe\r\n" +
                                 ";PrintAppArgs=\"*Quelle*\" \"HP OfficeJet Pro 8210\" pages=*Seiten*\r\n" 
                                 

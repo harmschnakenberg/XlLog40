@@ -43,7 +43,7 @@ namespace Kreutztraeger
         public static int XlDayFileFirstRowToWrite { get; set; } = 10;
         public static int XlMonthFileFirstRowToWrite { get; set; } = 8;
         public static string XlArchiveDir { get; set; } = @"D:\Archiv";
-        internal static string XlPassword { get; set; } = "henryk";
+        internal static string XlPassword { get; set; } = "#kkt#";
 
         #endregion
 
@@ -228,6 +228,9 @@ namespace Kreutztraeger
                     {
                         XlCopyMonthValuesFromLastYear();
                     }
+
+                    //Setzt den Blattschutz für jedes einzelne Tabellenblatt
+                    ProtectSheets(xlWorkingWorkbookFilePath, XlPassword);
                 }
                 return true;
             }
@@ -436,7 +439,7 @@ namespace Kreutztraeger
                             }
                             #endregion
                         }
-
+                       
                         // Druckeinstellung "Blatt auf einer Seite darstellen" 
                        worksheet.PrinterSettings.PaperSize = ePaperSize.A4;
                     }
@@ -1129,6 +1132,31 @@ namespace Kreutztraeger
                 Log.Write(Log.Category.FileSystem, -903261138, string.Format("Die Datei {0} ist bereits geöffnet und wird jetzt geschlossen.", Path.GetFileName(filePath)));
                 process.Kill();
                 process.WaitForExit();
+            }
+        }
+
+        /// <summary>
+        /// Setzt den Blattschutz für jedes einzelne Tabellenblatt.
+        /// </summary>
+        /// <param name="xlFilePath">Pfad zur Excel-Datei</param>
+        /// <param name="Password">Passwort für den Blattschutz</param>
+        private static void ProtectSheets(string xlFilePath, string password)
+        {
+            if (password.Length < 3) return;
+
+            FileInfo file1 = new FileInfo(xlFilePath);
+            using (ExcelPackage excelPackage = new ExcelPackage(file1))
+            {
+                // excelPackage.Encryption.IsEncrypted = true;
+                excelPackage.Workbook.Properties.Keywords += password;
+
+                foreach (ExcelWorksheet sheet in excelPackage.Workbook.Worksheets)
+                {
+                    sheet.Protection.SetPassword(password);
+                    sheet.Protection.IsProtected = true;
+                }
+
+                excelPackage.Save();
             }
         }
 
