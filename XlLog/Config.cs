@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace Kreutztraeger
 {
@@ -169,6 +170,10 @@ namespace Kreutztraeger
                     if (int.TryParse(configVal, out i))
                         Tools.WaitForScripts = i;
 
+                    configVal = TagValueFromConfig(dict, "PrintStartHour");
+                    if (int.TryParse(configVal, out i))
+                        Print.PrintStartHour = i;
+
                     //String
                     configVal = TagValueFromConfig(dict, "InTouchDiscFlag");
                     if (configVal != null)
@@ -190,13 +195,20 @@ namespace Kreutztraeger
                     if (configVal != null)
                         Print.PrinterAppArgs = configVal;
                     
-                    configVal = TagValueFromConfig(dict, "PrintStartHour");
-                    if (int.TryParse(configVal, out i))
-                        Print.PrintStartHour = i;
-
                     configVal = TagValueFromConfig(dict, "XlPassword");
-                    if (int.TryParse(configVal, out i))
-                        Print.PrintStartHour = i;
+                    if (configVal != null)
+                    {
+                        if (configVal.StartsWith("\"") && configVal.EndsWith("\""))
+                        {
+                            string encrypt = configVal.Substring(1, configVal.LastIndexOf("\"") - 1);
+                            Excel.XlPassword = EncryptDecrypt(encrypt, 200);
+                        }
+                        else
+                        {
+                            Excel.XlPassword = configVal;
+                        }
+                    }
+                        
                     
                 }
 
@@ -216,6 +228,26 @@ namespace Kreutztraeger
                 return val;
             }
             else return null;
+        }
+
+        /// <summary>
+        /// Passwortentschlüsselung
+        /// </summary>
+        /// <param name="szPlainText"></param>
+        /// <param name="szEncryptionKey"></param>
+        /// <returns></returns>
+        private static string EncryptDecrypt(string szPlainText, int szEncryptionKey)
+        {
+            StringBuilder szInputStringBuild = new StringBuilder(szPlainText);
+            StringBuilder szOutStringBuild = new StringBuilder(szPlainText.Length);
+            char Textch;
+            for (int iCount = 0; iCount < szPlainText.Length; iCount++)
+            {
+                Textch = szInputStringBuild[iCount];
+                Textch = (char)(Textch ^ szEncryptionKey);
+                szOutStringBuild.Append(Textch);
+            }
+            return szOutStringBuild.ToString();
         }
 
     }
