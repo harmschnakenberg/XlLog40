@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Windows;
 
 namespace Kreutztraeger
 {
@@ -23,7 +24,7 @@ namespace Kreutztraeger
             {
                 try
                 {
-                    w.WriteLine("[" + w.Encoding.ToString() + "]\r\n" +
+                    w.WriteLine("[öäü " + w.Encoding.ToString() + "]\r\n" +
                                 "[Allgemein]\r\n" +
                                 ";DebugWord=" + Log.DebugWord + "\r\n" + 
                                 ";WaitToClose=" + Tools.WaitToClose + "\r\n" + 
@@ -201,6 +202,7 @@ namespace Kreutztraeger
                         if (configVal.StartsWith("\"") && configVal.EndsWith("\""))
                         {
                             string encrypt = configVal.Substring(1, configVal.LastIndexOf("\"") - 1);
+                            Excel.XlPasswordEncrypted = encrypt;
                             Excel.XlPassword = EncryptDecrypt(encrypt, 200);
                         }
                         else

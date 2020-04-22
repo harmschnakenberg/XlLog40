@@ -43,7 +43,8 @@ namespace Kreutztraeger
         public static int XlDayFileFirstRowToWrite { get; set; } = 10;
         public static int XlMonthFileFirstRowToWrite { get; set; } = 8;
         public static string XlArchiveDir { get; set; } = @"D:\Archiv";
-        internal static string XlPassword { get; set; } = "#kkt#";
+        internal static string XlPassword { get; set; } = string.Empty;
+        internal static string XlPasswordEncrypted { get; set;}
 
         #endregion
 
@@ -230,7 +231,10 @@ namespace Kreutztraeger
                     }
 
                     //Setzt den Blattschutz für jedes einzelne Tabellenblatt
-                    ProtectSheets(xlWorkingWorkbookFilePath, XlPassword);
+                    if (XlPassword.Length > 0)
+                    {
+                        ProtectSheets(xlWorkingWorkbookFilePath, XlPassword);
+                    }
                 }
                 return true;
             }
@@ -656,14 +660,23 @@ namespace Kreutztraeger
                             Log.Write(Log.Category.InTouchVar, 1903151201, "InTouch-Tag \"SchockNr\": Es wurde kein Schockkkühler definiert.");
                             break; // Es wurde kein Schockkühler gesetzt.
                         }
+                        else
+                        {
+                            Log.Write(Log.Category.ExcelShock, 2004210955, string.Format("Setze Eintrag für Schockkühler {0}", SchockNr));
+                        }
                         #endregion
 
                         #region Starte/beende Schockkühlvorgang; schreibe in Excel-Tabelle 
 
                         // Finde Zeile mit letztem Auftreten von SchockNr
-                        int currentRowNo = shockNoList.LastIndexOf(SchockNr) + XlDayFileFirstRowToWrite;
-                        if (currentRowNo < XlDayFileFirstRowToWrite) currentRowNo = firstEmptyRow; // Dieser Schockkühler wurde noch nicht aufgezeichnet: gehe in erste leere Zeile.
+                        int currentRowNo = firstEmptyRow;
 
+                        if (shockNoList.Count > 0)
+                        {
+                            currentRowNo = shockNoList.LastIndexOf(SchockNr) + XlDayFileFirstRowToWrite;
+                            if (currentRowNo < XlDayFileFirstRowToWrite) currentRowNo = firstEmptyRow; // Dieser Schockkühler wurde noch nicht aufgezeichnet: gehe in erste leere Zeile.
+                        }
+                 
                         bool startTimeIsEmpty = worksheet.Cells[currentRowNo, (int)XlShockCol.StartTime].Value == null;
                         bool endTimeIsEmpty = worksheet.Cells[currentRowNo, (int)XlShockCol.EndTime].Value == null;
 
@@ -672,13 +685,21 @@ namespace Kreutztraeger
                         {
                             currentRowNo = firstEmptyRow;
                             startTimeIsEmpty = worksheet.Cells[currentRowNo, (int)XlShockCol.StartTime].Value == null;
-                            endTimeIsEmpty = worksheet.Cells[currentRowNo, (int)XlShockCol.EndTime].Value == null;
-                            //Log.Write(0, -14, string.Format("B) Änderung: currentRowNo: >{0}<", currentRowNo));
+                            endTimeIsEmpty = worksheet.Cells[currentRowNo, (int)XlShockCol.EndTime].Value == null;    
                         }
 
                         //LeseTagNames für Schockkühler-Temperaturen
-                        string[] ProductTempTagNames = wsContent[(int)XlShockCol.ProductStartTemp - 1].Split(';');
+                        string[] ProductTempTagNames = wsContent[(int)XlShockCol.ProductStartTemp - 1].Split(';');                       
+                        if (ProductTempTagNames.Length < SchockNr)
+                        {
+                            Log.Write(Log.Category.ExcelShock, -004211026, string.Format("Excelvorlage Blatt Schockkühler prüfen: Für Schockkühler {0} ist kein TagName Produkttemperatur eingetragen; Eintrag: {0}", SchockNr, ProductTempTagNames.ToArray()));            
+                        }
+
                         string[] RoomTempTagNames = wsContent[(int)XlShockCol.RoomStartTemp - 1].Split(';');
+                        if (RoomTempTagNames.Length < SchockNr)
+                        {
+                            Log.Write(Log.Category.ExcelShock, -004211033, string.Format("Excelvorlage Blatt Schockkühler prüfen: Für Schockkühler {0} ist kein TagName Raumtemperatur eingetragen; Eintrag: {0}", SchockNr, RoomTempTagNames.ToArray()));
+                        }
 
                         // Wenn Anfangszeit leer ist: neuen Schockkühlvorgang starten
                         if (startTimeIsEmpty)
@@ -710,7 +731,7 @@ namespace Kreutztraeger
                             float SchockMinXK = intouch.ReadFloat("SchockMin" + SchockNr + "K");
                             float SchockMaxXK = intouch.ReadFloat("SchockMax" + SchockNr + "K");
 
-                            Log.Write(Log.Category.ExcelShock, 1902141623, string.Format("Vorgang in Zeile {0} beendet: Schockkühler {1}, ", currentRowNo, SchockNr));
+                            Log.Write(Log.Category.ExcelShock, 1902141623, string.Format("Vorgang Schockkühler {0} in Zeile {1} beendet.", SchockNr, currentRowNo));
 
                             worksheet.Cells[currentRowNo, (int)XlShockCol.EndTime].Value = DateTime.Now.ToLongTimeString();
                             TimeSpan startTime = DateTime.Parse(worksheet.Cells[currentRowNo, (int)XlShockCol.StartTime].Text).TimeOfDay;
@@ -1148,7 +1169,7 @@ namespace Kreutztraeger
             using (ExcelPackage excelPackage = new ExcelPackage(file1))
             {
                 // excelPackage.Encryption.IsEncrypted = true;
-                excelPackage.Workbook.Properties.Keywords += password;
+                excelPackage.Workbook.Properties.Keywords += XlPasswordEncrypted;
 
                 foreach (ExcelWorksheet sheet in excelPackage.Workbook.Worksheets)
                 {
