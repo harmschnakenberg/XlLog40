@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 
 namespace Kreutztraeger
 {
-    class Tools
+    class Tools //Fehlernummern siehe Log.cs 13YYZZ
     {
         /// <summary>
         /// Sekunden, die das CMD-Fenster offen bleibt, wenn durch Benutzer gestartet.  
@@ -21,7 +19,7 @@ namespace Kreutztraeger
         /// Wartet und zählt die Sekunden in der Konsole runter.
         /// </summary>
         /// <param name="seconds">Sekunden, die gewartet werden sollen.</param>
-        internal static void Wait(int seconds)
+        internal static void Wait(int seconds) //Fehlernummern siehe Log.cs 1301ZZ
         {
             while (seconds > 0)
             {
@@ -32,7 +30,7 @@ namespace Kreutztraeger
             }
         }
 
-        public static bool IsBitSet(int b, int pos)
+        public static bool IsBitSet(int b, int pos) //Fehlernummern siehe Log.cs 1302ZZ
         {
             return (b & (1 << pos)) != 0;
         }

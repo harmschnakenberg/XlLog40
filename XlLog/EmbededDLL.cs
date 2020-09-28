@@ -5,10 +5,10 @@ using System.Reflection;
 namespace Kreutztraeger
 {
     // Quelle: https://wojciechkulik.pl/csharp/embedded-class-libraries-dll
-    static class EmbededDLL
+    static class EmbededDLL //Fehlernummern siehe Log.cs 03YYZZ
     {
-        private static Assembly ExecutingAssembly = Assembly.GetExecutingAssembly();
-        private static string[] EmbeddedLibraries = ExecutingAssembly.GetManifestResourceNames().Where(x => x.EndsWith(".dll")).ToArray();
+        private static readonly Assembly ExecutingAssembly = Assembly.GetExecutingAssembly();
+        private static readonly string[] EmbeddedLibraries = ExecutingAssembly.GetManifestResourceNames().Where(x => x.EndsWith(".dll")).ToArray();
 
         /// <summary>
         /// Lädt alle *.dll-Dateien aus Resources (DLL mit Builtvorgang: Eingebettete Resource)   
@@ -16,13 +16,13 @@ namespace Kreutztraeger
         /// Nur notwendig, wenn DLLs in diese exe integriert werden sollen.
         /// </summary>
         [STAThread]
-        internal static void LoadDlls()
+        internal static void LoadDlls() //Fehlernummern siehe Log.cs 0301ZZ
         {
             // Attach custom event handler
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
         }
 
-        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args) //Fehlernummern siehe Log.cs 0302ZZ
         {
             // Get assembly name
             var assemblyName = new AssemblyName(args.Name).Name + ".dll";

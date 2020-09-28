@@ -9,10 +9,13 @@ using System.Drawing;
 
 namespace Kreutztraeger
 {
-    class Sql
+    class Sql //Fehlernummern siehe Log.cs 11YYZZ
     {        
         public static string XmlDir { get; set; } = @"D:\Into_110\PROJEKTNAME\XML";
-        const string ConnString = @"Data Source=.\sqlexpress; Initial Catalog = WWALMDB; User ID = wwAdmin; Password=wwAdmin";
+        public static string DataSource { get; set; } = @".\SQLExpress";
+        static readonly string SqlConnString  = string.Format( @"Data Source={0}; Initial Catalog = WWALMDB; User ID=wwAdmin; Password=wwAdmin", DataSource);     
+        //static readonly string SqlConnString = string.Format(@"ODBC; DRIVER=SQL Server; SERVER=.\sqlexpress; UID=wwuser; PWD=wwuser; DATABASE=WWALMDB", DataSource); // UNGÜLTIG!
+
         static string DBGruppe = "A00_General";
         static string DBGruppeComment = "unbekannt";
         static string DBStartTime;
@@ -27,16 +30,17 @@ namespace Kreutztraeger
         /// Die Excel-Tabelle wird in ein PDF gewandelt. keepExcelFile bestimmt, ob die Excel-Datei gelöscht wird.
         /// </summary>
         /// <param name="keepExcelFile">true = erzeugt Exceldatei und PDF; false = nur PDF.</param>
-        internal static void AlmListToExcel(bool keepExcelFile)
+        internal static void AlmListToExcel(bool keepExcelFile) //Fehlernummern siehe Log.cs 1101ZZ
         {
-            Log.Write(Log.Category.MethodCall, 1907210001, string.Format("AlmListToExcel({0})", keepExcelFile));
+            Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 110101, string.Format("AlmListToExcel({0})", keepExcelFile));
 
             try
             {
+
                 string sqlQuery = SqlQueryString();
                 if (sqlQuery.Length < 1) return;
 
-                DataTable dt = SqlQyery(ConnString, sqlQuery);
+                DataTable dt = SqlQyery(SqlConnString, sqlQuery);
 
                 string almPrintFilePath = Path.Combine(Excel.XlArchiveDir, "Listen");
                 Directory.CreateDirectory(almPrintFilePath);
@@ -46,31 +50,32 @@ namespace Kreutztraeger
 
                 FillAlmListFile(almPrintFilePath, dt);
 
-                Tools.Wait(2);
+                Tools.Wait(1);
 
                 Pdf.CreatePdf(almPrintFilePath);
 
                 if (!keepExcelFile) File.Delete(almPrintFilePath);
             }
-            catch (SqlException)
+            catch (SqlException sql_ex)
             {
-                Log.Write(Log.Category.SqlQuery, -002191158, string.Format("Fehler in SQL-Syntax: \r\n\t\t\t\t{0}", SqlQueryString() ) );
+                Log.Write(Log.Cat.SqlQuery, Log.Prio.Error, 110102, string.Format("Fehler in SQL-Syntax: \r\n\t\t\t{0}:\r\n\t\t\t{1}\r\n\t\t\t{2}\r\n", DataSource, SqlQueryString(), sql_ex.Message ) );
                 Program.AppErrorOccured = true;
             }
             catch (Exception ex)
             {
-                Log.Write(Log.Category.SqlQuery, -903131714, string.Format("Fehler beim Auslesen der AlmDatenbank: Typ: {0} \r\n\t\t\t\tFehlertext: {1}  \r\n\t\t\t\tInnerException: {2}  \r\n\t\t\t\tStackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
+                Log.Write(Log.Cat.SqlQuery, Log.Prio.Error, 110103, string.Format("Fehler beim Auslesen der AlmDatenbank: Typ: {0} \r\n\t\t\t\tFehlertext: {1}  \r\n\t\t\t\tInnerException: {2}  \r\n\t\t\t\tStackTrace: {3}\r\n\r\n\r\n CONSTRING: {4}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace, SqlConnString));
                 Program.AppErrorOccured = true;
             }
         }
 
+     
         /// <summary>
         /// Erzeugt die Sql-Abfrage Zeichenfolge
         /// </summary>
         /// <returns>Sql-Abfrage Zeichenfolge</returns>
-        private static string SqlQueryString()
+        private static string SqlQueryString() //Fehlernummern siehe Log.cs 1102ZZ
         {
-            Log.Write(Log.Category.MethodCall, 1907210002, string.Format("SqlQueryString()"));
+            Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 110201, string.Format("SqlQueryString()"));
             //ToDo: Testen; Was, wenn InTouchTagName nicht existiert?
 
             try
@@ -83,7 +88,7 @@ namespace Kreutztraeger
                 DBvonPrio = (int)InTouch.ReadTag("DBvonPrio");
                 DBbisPrio = (int)InTouch.ReadTag("DBbisPrio");
 
-                Log.Write(Log.Category.SqlQuery, 1911221032, string.Format("DBGruppe {0}\r\n\t\t\t\t, DBGruppeComment {1}\r\n\t\t\t\t, DBStartTime {2}\r\n\t\t\t\t, DBEndTime {3}\r\n\t\t\t\t, DBvonPrio {4}\r\n\t\t\t\t, DBbisPrio {5}\r\n\t\t\t\t", DBGruppe, DBGruppeComment, DBStartTime, DBEndTime, DBvonPrio, DBbisPrio));
+                Log.Write(Log.Cat.SqlQuery, Log.Prio.Info, 110202, string.Format("SQL-Abfrage mit: DBGruppe {0}\r\n\t\t\t\t, DBGruppeComment {1}\r\n\t\t\t\t, DBStartTime {2}\r\n\t\t\t\t, DBEndTime {3}\r\n\t\t\t\t, DBvonPrio {4}\r\n\t\t\t\t, DBbisPrio {5}\r\n\t\t\t\t", DBGruppe, DBGruppeComment, DBStartTime, DBEndTime, DBvonPrio, DBbisPrio));
 
                 // GROUP BY - string
                 string grptxt = GetGrpString();
@@ -104,8 +109,8 @@ namespace Kreutztraeger
                 //Log.Write(Log.Category.SqlQuery, 1903141202, "\r\nConString: " + ConnString + "\r\nDBGruppe: " + DBGruppe + "\r\nDBGruppeComment: " + DBGruppeComment + "\r\nDBStartTime: " + DBStartTime + "\t" + StartTime.ToString("g") + "\r\nDBStartTime: " + DBEndTime + "\t" + EndTime.ToString("g") + "\r\n DBvonPrio: " + DBvonPrio + "\r\n DBbisPrio: " + DBbisPrio + "\r\n");
 
                 //# TT.MM..YYYY HH:mm
-                string vonzeittxt = " AND v_AE.EventStamp > '" + StartTime.ToString("g") + "'";
-                string biszeittxt = " AND v_AE.EventStamp < '" + EndTime.ToString("g") + "'";
+                string vonzeittxt = " AND v_AE.EventStamp > '" + StartTime.ToString("s") + "'";
+                string biszeittxt = " AND v_AE.EventStamp < '" + EndTime.ToString("s") + "'";
 
                 string SQLString = "SELECT " +
                  // "v_AE.EventStamp AS 'Datum'," +
@@ -123,13 +128,14 @@ namespace Kreutztraeger
                  " AND v_AE.Priority <= " + DBbisPrio + ") " +
                  "ORDER BY v_AE.EventStamp DESC";
 
-                //Log.Write(Log.Category.SqlQuery, 1903141304, "SQL-Abfrage:\r\n" + SQLString);
+                Log.Write(Log.Cat.SqlQuery, Log.Prio.Info, 110204, "SQL-Abfrage:\r\n" + SQLString);
 
                 return SQLString;
             }
             catch (Exception ex)
             {
-                Log.Write(Log.Category.SqlQuery, -911221030, string.Format("Fehler beim Zusammenstellen der AlmDatenbank-Abfrage: \r\n\t\t Typ: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}  \r\n\t\t StackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
+                Log.Write(Log.Cat.SqlQuery, Log.Prio.Error, 110203, string.Format("Fehler beim Zusammenstellen der AlmDatenbank-Abfrage: \r\n\t\t Typ: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}  \r\n\t\t StackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
+                Program.AppErrorOccured = true;
                 return string.Empty;
             }
         }
@@ -138,16 +144,16 @@ namespace Kreutztraeger
         /// Erzeugt den Teil für den SQL-Abfragestring, in dem die anzuzeigenden Alarmgruppen festgelegt werden. 
         /// </summary>
         /// <returns>für SQL-Abfrage Teilstring 'WHERE...'</returns>
-        private static string GetGrpString()
+        private static string GetGrpString() //Fehlernummern siehe Log.cs 1103ZZ
         {
-            Log.Write(Log.Category.MethodCall, 1907210004, string.Format("GetGrpString()"));
+            Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 110301, string.Format("GetGrpString()"));
 
             try
             {
                 if (!Directory.Exists(XmlDir))
                 {
-                    Log.Write(Log.Category.FileSystem, -912051122, "Der XML-Ordner konnte nicht gefunden werden: >" + XmlDir + "<");
-                    Program.AppErrorOccured = true;
+                    Log.Write(Log.Cat.FileSystem, Log.Prio.Error, 110302, "Der XML-Ordner >" + XmlDir + "< konnte nicht gefunden werden.");
+                    //Program.AppErrorOccured = true;
                     return null;
                 }
 
@@ -155,8 +161,8 @@ namespace Kreutztraeger
 
                 if (!File.Exists(xmlFilePath))
                 {
-                    Log.Write(Log.Category.FileSystem, 1903131454, "Die Alarmgruppendatei konnte nicht gefunden werden: " + xmlFilePath);
-                    Program.AppErrorOccured = true;
+                    Log.Write(Log.Cat.FileSystem, Log.Prio.Error, 110303, string.Format("Die Alarmgruppendatei >{0}< konnte nicht gefunden werden.", xmlFilePath));
+                    //Program.AppErrorOccured = true;
                     return null;
                 }
 
@@ -181,7 +187,8 @@ namespace Kreutztraeger
             }
             catch (Exception ex)
             {
-                Log.Write(Log.Category.SqlQuery, -912051128, string.Format("Fehler in GetGrpString() - Auslesen der Alarmdatenbank: \r\n\t\tTyp: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}  \r\n\t\t StackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
+                Log.Write(Log.Cat.SqlQuery, Log.Prio.Error, 110304, string.Format("Fehler in GetGrpString() - Auslesen der Alarmdatenbank: \r\n\t\tTyp: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}  \r\n\t\t StackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
+                Program.AppErrorOccured = true;
                 return null;
             }
         }
@@ -192,24 +199,45 @@ namespace Kreutztraeger
         /// <param name="ConnString">Sql-Connection String</param>
         /// <param name="SqlQuery">Sql-Abfrage</param>
         /// <returns>DataTable mit Abfrageergebnis</returns>
-        internal static DataTable SqlQyery(string ConnString, string SqlQuery)
+        internal static DataTable SqlQyery(string ConnString, string SqlQuery) //Fehlernummern siehe Log.cs 1104ZZ
         {
-            Log.Write(Log.Category.MethodCall, 1907210005, string.Format(" SqlQyery({0},{1})", ConnString, SqlQuery));
+            Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 110401, string.Format(" SqlQyery({0},{1})", ConnString, SqlQuery));
 
             DataTable dataTable = new DataTable();
 
             using (SqlConnection con = new SqlConnection(ConnString))
             {
-                using (SqlCommand cmd = new SqlCommand(SqlQuery, con))
+             
+                try // Normale Benutzeranmeldung
                 {
                     con.Open();
+                }
+                catch (System.Data.SqlClient.SqlException) // Windows-Authentifizierung
+                {
+                    Log.Write(Log.Cat.SqlQuery, Log.Prio.Info, 110402, "Nutze Windows Authentifizierung an SQL Server.");
 
+                    System.Data.SqlClient.SqlConnectionStringBuilder builder = new System.Data.SqlClient.SqlConnectionStringBuilder
+                    {
+                        ["data source"] = System.Environment.MachineName,
+                        ["database"] = "WWALMDB",
+                        ["Integrated Security"] = "SSPI"
+                    };
+
+                    con.ConnectionString = builder.ConnectionString;
+                    con.Open();
+                }
+                catch
+                {
+                    Log.Write(Log.Cat.SqlQuery, Log.Prio.Error, 110402, string.Format("Verbindung zu Sql Server >{0}< konnte nicht aufgebaut werden.", DataSource));
+                }
+
+                using (SqlCommand cmd = new SqlCommand(SqlQuery, con))
+                {                   
                     // create data adapter
                     SqlDataAdapter da = new SqlDataAdapter(cmd);
                     // this will query your database and return the result to your datatable
                     da.Fill(dataTable);
                 }
-
             }
             return dataTable;
         }
@@ -219,8 +247,10 @@ namespace Kreutztraeger
         /// Überschreibt ggf. existierende Datei mit gleichem Pfad.
         /// </summary>
         /// <param name="xlFilePath">Pfad der zu erzeugenden Datei.</param>
-        private static void TryCreateNewExcelAlmFile(string xlFilePath)
+        private static void TryCreateNewExcelAlmFile(string xlFilePath) //Fehlernummern siehe Log.cs 1105ZZ
         {
+            Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 110501, string.Format("TryCreateNewExcelAlmFile({0})", xlFilePath));
+
             if (File.Exists(xlFilePath)) File.Delete(xlFilePath);
 
             FileInfo file = new FileInfo(xlFilePath);
@@ -269,7 +299,7 @@ namespace Kreutztraeger
                     worksheet.Column(7).Style.Font.Size = 9;
 
                     //Gruppe
-                    worksheet.Column(3).Width = 13;
+                    worksheet.Column(8).Width = 13;
                     worksheet.Column(8).Style.Font.Name = "Arial";
                     worksheet.Column(8).Style.Font.Size = 9;
 
@@ -280,6 +310,8 @@ namespace Kreutztraeger
                     //Seitenlayout
                     worksheet.PrinterSettings.PaperSize = ePaperSize.A4;
                     worksheet.PrinterSettings.Orientation = eOrientation.Landscape;
+                    //worksheet.PrinterSettings.LeftMargin = (decimal) 0.1;
+                    //worksheet.PrinterSettings.RightMargin = (decimal)0.1;
                     worksheet.PrinterSettings.HorizontalCentered = true;
                     worksheet.PrinterSettings.FitToPage = true;
                     worksheet.PrinterSettings.FitToWidth = 1;
@@ -291,7 +323,7 @@ namespace Kreutztraeger
             }
             catch (Exception ex)
             {
-                Log.Write(Log.Category.ExcelWrite, -903131703, string.Format("Datei für Alarmausdruck konnte nicht erstellt werden: {0}\r\n\t\t Typ: {1} \r\n\t\t Fehlertext: {2}  \r\n\t\t InnerException: {3}  \r\n\t\t StackTrace: {4}", xlFilePath, ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
+                Log.Write(Log.Cat.ExcelWrite, Log.Prio.Error, 110502, string.Format("Datei für Alarmausdruck konnte nicht erstellt werden: {0}\r\n\t\t Typ: {1} \r\n\t\t Fehlertext: {2}  \r\n\t\t InnerException: {3}  \r\n\t\t StackTrace: {4}", xlFilePath, ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
             }
         }
 
@@ -300,11 +332,11 @@ namespace Kreutztraeger
         /// </summary>
         /// <param name="xlFilePath"></param>
         /// <param name="dt">DataTable aus SQL-Abfrage SqlQuery()</param>
-        private static void FillAlmListFile(string xlFilePath, DataTable dt)
+        private static void FillAlmListFile(string xlFilePath, DataTable dt) // //Fehlernummern siehe Log.cs 1106ZZ
         {
             if (!File.Exists(xlFilePath))
             {
-                Log.Write(Log.Category.FileSystem, 1903211532, string.Format("Die Datei {0} für AlmDruck existiert nicht.", xlFilePath));
+                Log.Write(Log.Cat.FileSystem, Log.Prio.Error, 110602, string.Format("Die Datei {0} für AlmDruck existiert nicht.", xlFilePath));
                 return;
             }
 
@@ -371,7 +403,7 @@ namespace Kreutztraeger
             }
             catch (Exception ex)
             {
-                Log.Write(Log.Category.ExcelWrite, -903211531, string.Format("In die Datei für Alarmausdruck konnte nicht geschrieben werden: {0}\r\n\t\t Typ: {1} \r\n\t\t Fehlertext: {2}  \r\n\t\t InnerException: {3}  \r\n\t\t StackTrace: {4}", xlFilePath, ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
+                Log.Write(Log.Cat.ExcelWrite, Log.Prio.Error, 110503, string.Format("In die Datei für Alarmausdruck konnte nicht geschrieben werden: {0}\r\n\t\t Typ: {1} \r\n\t\t Fehlertext: {2}  \r\n\t\t InnerException: {3}  \r\n\t\t StackTrace: {4}", xlFilePath, ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
 
             }
         }
@@ -382,7 +414,7 @@ namespace Kreutztraeger
         /// <param name="status">Spalte 'Zustand' aus SQL-Abfrage</param>
         /// <param name="group">Erstes Zeichen aus Spalte Gruppe aus SQL-Abfrage</param>
         /// <returns>Textfarbe</returns>
-        private static Color SetFontColor(string status, char group)
+        private static Color SetFontColor(string status, char group) //Fehlernummern siehe Log.cs 1107ZZ
         {
             /*
                 [Zustand] mögliche Werte im Feld
@@ -427,6 +459,7 @@ namespace Kreutztraeger
             }
         }
 
+      
     }
 
 

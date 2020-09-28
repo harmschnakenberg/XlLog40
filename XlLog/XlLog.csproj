@@ -67,7 +67,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>H:\Ex XLLog\_Doku\Aktuelle Anwendung\</OutputPath>
+    <OutputPath>H:\Excel KLog\_Doku\Aktuelle Anwendung\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>none</DebugType>
@@ -169,6 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="KK.ico" />
+    <Content Include="z_Fehlerbearbeitung.txt" />
     <EmbeddedResource Include="Resources\EPPlus.dll" />
   </ItemGroup>
   <ItemGroup>

@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 
 namespace Kreutztraeger
 {
     //Quelle: https://dotnet-snippets.de/snippet/setzen-der-systemzeit/58
 
-    public class SetNewSystemTime
+    public class SetNewSystemTime //Fehlernummern siehe Log.cs 12YYZZ
     {
         struct str_Zeit
         {
@@ -25,7 +22,7 @@ namespace Kreutztraeger
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool SetSystemTime(ref str_Zeit neueZeit);
 
-        private static void SetzeSystemzeit(DateTime NeueZeit)
+        private static void SetzeSystemzeit(DateTime NeueZeit) //Fehlernummern siehe Log.cs 1201ZZ
         {
             NeueZeit = NeueZeit.ToUniversalTime();
 
@@ -41,16 +38,65 @@ namespace Kreutztraeger
                 Millisekunde = (short)NeueZeit.Millisecond
             };
 
-            SetSystemTime(ref Zeit);
+            bool result = SetSystemTime(ref Zeit);
+
+            //If the function succeeds, the return value is nonzero.
+            if (result)
+            {
+                Log.Write(Log.Cat.Scheduler, Log.Prio.Error, 120102,
+                    "Der Benutzer >" + InTouch.ReadTag("$Operator") + "< hat die Systemzeit nach >" + NeueZeit.ToLocalTime() + "< (" + NeueZeit + " UTC) umgestellt.");
+            }
+            else
+            {
+                Log.Write(Log.Cat.Scheduler, Log.Prio.Error, 120103,
+                "Der Benutzer >" + InTouch.ReadTag("$Operator") + "< konnte die Systemzeit nicht nach >" + NeueZeit + "< umstellen. Fehler aus kernel32.dll");
+            }
         }
+
+        private static void SetzeSystemzeit2(DateTime NeueZeit)
+        {
+            string powerShellCommand = String.Format("Set-Date -Date {0}", NeueZeit);
+
+            System.Diagnostics.ProcessStartInfo start = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "powershell", // Specify exe name.
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                Arguments = powerShellCommand
+            };
+
+            using (System.Diagnostics.Process process = System.Diagnostics.Process.Start(start))
+            {
+                // Read the error stream first and then wait.
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                //Check for an error
+                if (!String.IsNullOrEmpty(error))
+                {
+                    Log.Write(Log.Cat.Scheduler, Log.Prio.Error, 120105,
+                        "Der Benutzer >" + InTouch.ReadTag("$Operator") + "< konnte die Systemzeit nicht nach >" + NeueZeit + "< umstellen. Fehler aus PowerShell");
+                }
+                else
+                {
+                    Log.Write(Log.Cat.Scheduler, Log.Prio.Error, 120106,
+                        "Der Benutzer >" + InTouch.ReadTag("$Operator") + "< hat die Systemzeit per PowerShell nach >" + NeueZeit + "< umgestellt.");
+                }
+            }
+        }
+
 
         /// <summary>
         /// Interpretiert newDateTime als Zeit. Bei Erfolg wird die Systemzeit auf diesen Wert gestellt und der Task XlLog_vbs15 gelöscht und neu erstellt.
         /// </summary>
         /// <param name="newDateTime"></param>
-        public static void SetNewSystemtimeAndScheduler(string newDateTime)
+        public static void SetNewSystemtimeAndScheduler(string newDateTime) //Fehlernummern siehe Log.cs 1202ZZ
         {
-            if (DateTime.TryParse(newDateTime, out DateTime dateTime))
+            var ci = new System.Globalization.CultureInfo("de-DE");
+            if (DateTime.TryParseExact(newDateTime, "dd.MM.yyyy HH:mm:ss", ci, System.Globalization.DateTimeStyles.None , out DateTime dateTime))
             {
                 SetzeSystemzeit(dateTime);
 
@@ -60,10 +106,11 @@ namespace Kreutztraeger
             }
             else
             {
-                Log.Write(Log.Category.Scheduler, 2001301013, "Neue Systemzeit konnte nicht gesetzt werden. Uhrzeit nicht erkannt in >" + newDateTime + "<");
+                Log.Write(Log.Cat.Scheduler, Log.Prio.Error, 120202,  "Neue Systemzeit konnte nicht gesetzt werden. Uhrzeit nicht erkannt in Zeichenfolge >" + newDateTime + "<");
             }
         }
 
     }
 
 }
+ 

@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
+//Fehlernummern 200 bis 299
 namespace Kreutztraeger
 {
     /*
@@ -15,9 +16,9 @@ namespace Kreutztraeger
      * - DBEndTime 
      * - DBvonPrio 
      * - DBbisPrio
-     * - ExBestStdWerte
-     * - ExLöscheStdMin
-     * - ExLösche15StdMin
+     * - ExBestStdWerte     - ab V1.3.12 konfigurierbar
+     * - ExLöscheStdMin     - ab V1.3.12 konfigurierbar
+     * - ExLösche15StdMin   - ab V1.3.12 konfigurierbar
      * - SchockNr
      * - ChargenNrS
      * - SchockRProg + SchockNr
@@ -26,14 +27,14 @@ namespace Kreutztraeger
      * 
      */
 
-    public static class InTouch
-    {      
+    public static class InTouch //Fehlernummern siehe Log.cs 05YYZZ
+    {
         /// <summary>
         /// Lese tagName aus InTouch (view.exe) 
         /// </summary>
         /// <param name="tagName">Name des zu lesenden Tags.</param>
         /// <returns>object mit Tag-Wert. Muss durch cast in gewünschten Datentyp gewandelt werden. Später ggf. per Delegaten ansprechen, um cast zu vermeiden?</returns>
-        public static object ReadTag(string tagName)
+        public static object ReadTag(string tagName) //Fehlernummern siehe Log.cs 0501ZZ
         {
             object result = null;
 
@@ -53,7 +54,7 @@ namespace Kreutztraeger
                         result = intouch.ReadFloat(tagName);
                         break;
                     case 4: //PT_STRING:
-                        result = intouch.ReadString(tagName); 
+                        result = intouch.ReadString(tagName);
                         break;
                 }
 
@@ -61,14 +62,14 @@ namespace Kreutztraeger
             }
             catch (DllNotFoundException dllex)
             {
-                Log.Write(Log.Category.InTouchDB, -902011207, string.Format("InTouch-Bibliotheken nicht bereit: {0}", dllex.Message));
-                Program.AppErrorOccured = true;
+                Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 050101, string.Format("InTouch-Bibliotheken nicht bereit: {0}", dllex.Message));
+                //Program.AppErrorOccured = true;
                 return null;
             }
             catch (Exception ex)
             {
-                Log.Write(Log.Category.InTouchDB, -902011210, string.Format("Fehler beim Lesen aus InTouch für TagName >{4}<: \r\n\t\tTyp: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}  \r\n\t\t StackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace, tagName));
-                Program.AppErrorOccured = true;                
+                Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 050102, string.Format("Fehler beim Lesen aus InTouch für TagName >{4}<: \r\n\t\tTyp: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}  \r\n\t\t StackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace, tagName));
+                //Program.AppErrorOccured = true;                
                 return null;
             }
 
@@ -78,22 +79,30 @@ namespace Kreutztraeger
         /// Setzt InTouch-Bits, um Excel-Alarmmeldungen zu steuern.        
         /// </summary>
         /// <param name="ErrorOccured">true = Fehler beim Ausführen dieses Programms aufgetreten</param>
-        internal static void SetExcelAliveBit(bool AppErrorOccured)
+        internal static void SetExcelAliveBit(bool AppErrorOccured)  //Fehlernummern siehe Log.cs 0502ZZ
         {
-
             if (AppErrorOccured)
             {
-                //Ein Fehler ist in diesem Programm aufgetreten.                
-                //Setze Meldung "Exceltabellen werden nicht gefüllt.."
-                WriteDiscTag(Program.InTouchDiscAlarm , true);
+                //Ein Fehler ist in diesem Programm aufgetreten.   
+
+                //Setze Fehlernummer in InTouch
+                WriteIntTag(Program.InTouchDIntErrorNumber, Program.AppErrorNumber);
+
+                //Setze Alarmmeldung in InTouch 
+                WriteDiscTag(Program.InTouchDiscAlarm, true);
             }
             else
             {
-                //Es ist kein Fehler aufgetreten.                 
-                //Rücksetzen von TimeoutBit.
-                WriteDiscTag(Program.InTouchDiscTimeOut, false);
-                //Rücksetzen von Alarm-Bit
-                WriteDiscTag(Program.InTouchDiscAlarm, false);               
+                //Es ist kein Fehler aufgetreten.      
+                if (Program.AppStartedBy == "Task") // Nur, wenn aus Task heraus gestartet
+                {
+                    //Rücksetzen von TimeoutBit.
+                    WriteDiscTag(Program.InTouchDiscTimeOut, false);
+                    Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 050202, string.Format("Setze InTouch-Variable >{0}< = {1}.", Program.InTouchDiscResetHourCounter, false));
+                }
+
+                //Rücksetzen von Alarm-Bit _> Entfällt. Anfordeurng Hy: wird nur in InTouch zurückgesetzt.
+                //WriteDiscTag(Program.InTouchDiscAlarm, false);               
             }
         }
 
@@ -102,7 +111,7 @@ namespace Kreutztraeger
         /// </summary>
         /// <param name="tagName">Variablenname</param>
         /// <param name="value">Zuweisungswert</param>
-        internal static void WriteDiscTag (string tagName, bool value)
+        internal static void WriteDiscTag(string tagName, bool value)  //Fehlernummern siehe Log.cs 0503ZZ
         {
             try
             {
@@ -112,27 +121,51 @@ namespace Kreutztraeger
                 NativeMethods intouch = new NativeMethods(0, 0);
 
                 intouch.WriteDiscrete(tagName, val);
-               
+
             }
             catch (DllNotFoundException dllex)
             {
-                Log.Write(Log.Category.InTouchDB, -905071615, string.Format("InTouch-Bibliotheken nicht bereit zum Schreiben: {0}", dllex.Message));
-                Program.AppErrorOccured = true;
+                Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 050302, string.Format("InTouch-Bibliotheken nicht bereit zum Schreiben: {0}", dllex.Message));
+                //Program.AppErrorOccured = true;
             }
             catch (Exception ex)
             {
-                Log.Write(Log.Category.InTouchDB, -905071616, string.Format("Fehler beim Schreiben in InTouch für TagName >{4}<: \r\n\t\tTyp: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}  \r\n\t\t StackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace, tagName));
-                Program.AppErrorOccured = true;
+                Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 050302, string.Format("Fehler beim Schreiben in InTouch für TagName >{4}<: \r\n\t\tTyp: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}  \r\n\t\t StackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace, tagName));
+                //Program.AppErrorOccured = true;
+            }
+        }
+
+        internal static void WriteIntTag(string tagName, int value)  //Fehlernummern siehe Log.cs 0504ZZ
+        {
+            try
+            {
+                NativeMethods intouch = new NativeMethods(0, 0);
+
+                intouch.WriteInteger(tagName, value);
+            }
+            catch (DllNotFoundException dllex)
+            {
+                Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 050401, string.Format("InTouch-Bibliotheken nicht bereit zum Schreiben: {0}", dllex.Message));
+                //Program.AppErrorOccured = true;
+            }
+            catch (Exception ex)
+            {
+                Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 050402, string.Format("Fehler beim Schreiben in InTouch für TagName >{4}<: \r\n\t\tTyp: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}  \r\n\t\t StackTrace: {3}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace, tagName));
+                //Program.AppErrorOccured = true;
             }
         }
 
     }
 
-    public class NativeMethods
+    public class NativeMethods //Fehlernummern siehe Log.cs 06YYZZ
     {
         //für 64-Bit Betriebssystem
         const string ptaccPath = @"C:\Program Files (x86)\Wonderware\InTouch\ptacc.dll";
         const string wwheapPath = @"C:\Program Files (x86)\Common Files\ArchestrA\wwheap.dll";
+
+        // Kaufland Sonderlocke
+        //const string ptaccPath = @"F:\Programme\Wonderware\InTouch\ptacc.dll";
+        //const string wwheapPath = @"C:\Program Files (x86)\Common Files\ArchestrA\wwheap.dll";
 
         //für 32-Bit Betriebssystem
         //const string ptaccPath = @"C:\Program Files\Wonderware\InTouch\ptacc.dll";
@@ -396,7 +429,7 @@ namespace Kreutztraeger
                 hPt = PtAccActivate(accid, strTagName);
                 if (hPt == 0)
                 {
-                    Log.Write(Log.Category.InTouchVar, 1903151310, "Message Variable nicht gefunden: " + strTagName);
+                    Log.Write(Log.Cat.InTouchVar, Log.Prio.Warning, 060201, "Message Variable nicht gefunden: " + strTagName);
                     return null; //TagName nicht gefunden. neu 10.04.2019 HaSch
                 }
 

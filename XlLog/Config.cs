@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows;
 
+
 namespace Kreutztraeger
 {
-    class Config
+    class Config //Fehlernummern siehe Log.cs 02YYZZ
     {
         private const string ConfigFileName = "XlConfig.ini";
 
@@ -15,29 +17,38 @@ namespace Kreutztraeger
         /// Erstellt eine Konfig-INI mit Default-Werten.
         /// </summary>
         /// <param name="ConfigFileName">Name der Konfig-Datei</param>
-        private static void CreateConfig(string ConfigFileName)
+        private static void CreateConfig(string ConfigFileName) //Fehlernummern siehe Log.cs 0201ZZ
         {
-            Log.Write(Log.Category.MethodCall, 1907261400, string.Format("CreateConfig({0})", ConfigFileName));
-
+            Log.Write(Log.Cat.MethodCall, Log.Prio.LogAlways, 020101, string.Format("CreateConfig({0})", ConfigFileName));
+                                                    
             string configPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ConfigFileName);
             using (StreamWriter w = File.AppendText(configPath))
             {
                 try
                 {
-                    w.WriteLine("[öäü " + w.Encoding.ToString() + "]\r\n" +
-                                "[Allgemein]\r\n" +
-                                ";DebugWord=" + Log.DebugWord + "\r\n" + 
-                                ";WaitToClose=" + Tools.WaitToClose + "\r\n" + 
+                    w.WriteLine("[öäü " + w.Encoding.EncodingName + ", Build " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version +"]\r\n" +
+                                "\r\n[Intern]\r\n" +
+                                ";DebugWord=" + Log.DebugWord + "\r\n" +
+                                ";WaitToClose=" + Tools.WaitToClose + "\r\n" +
                                 ";WaitForScripts=" + Tools.WaitForScripts + "\r\n" +
-
+                                ";StartTaskIntervallMinutes=" + Scheduler.StartTaskIntervallMinutes + "\r\n" +
+                                // ";DataSource=" + Sql.DataSource + "\r\n" +
+                                ";;DataSource=" + Environment.MachineName + "\r\n" +
+                                
                                 "\r\n[InTouch]\r\n" +
-                                ";InTouchDiscFlag=" + Program.XlLogFlag + "\r\n" + 
-                                ";InTouchDiscAlarm="+ Program.InTouchDiscAlarm + "\r\n" +
-                                ";InTouchDiscTimeOut=" + Program.InTouchDiscTimeOut + "\r\n" + 
+                                ";InTouchDiscFlag=" + Program.InTouchDiscXlLogFlag + "\r\n" +
+                                ";InTouchDiscAlarm=" + Program.InTouchDiscAlarm + "\r\n" +
+                                ";InTouchDiscTimeOut=" + Program.InTouchDiscTimeOut + "\r\n" +
+                                ";InTouchDiscSetCalculations=" + Program.InTouchDiscSetCalculations + "\r\n" +
+                                ";InTouchDiscResetHourCounter=" + Program.InTouchDiscResetHourCounter + "\r\n" +
+                                ";InTouchDiscResetQuarterHourCounter=" + Program.InTouchDiscResetQuarterHourCounter + "\r\n" +
+                                ";InTouchDIntErrorNumber=" + Program.InTouchDIntErrorNumber + "\r\n" +
+                                ";InTouchIntPrintBitMaskDay=" + Print.InTouchIntPrintBitMaskDay + "\r\n" +
+                                ";InTouchIntPrintBitMaskMonth=" + Print.InTouchIntPrintBitMaskMonth + "\r\n" +
 
                                 "\r\n[Pfade]\r\n" +
                                 ";XlArchiveDir=" + Excel.XlArchiveDir + "\r\n" +
-                                ";XmlDir=" + Sql.XmlDir + "\r\n" + 
+                                ";;XmlDir=" + TryFindXmlDir() + "\r\n" +
 
                                 "\r\n[Vorlagen]\r\n" +
                                 ";XlTemplateDayFilePath=" + Excel.XlTemplateDayFilePath + "\r\n" +
@@ -49,33 +60,26 @@ namespace Kreutztraeger
                                 ";XlNegOffsetMin=" + Excel.XlNegOffsetMin + "\r\n" +
 
                                 "\r\n[PDF]\r\n" +
+                                ";XlImmediatelyCreatePdf=0\r\n" +
                                 ";PdfConvertStartHour=" + Pdf.PdfConvertStartHour + "\r\n" +
                                 ";PdfConverterPath=" + Pdf.PdfConverterPath + "\r\n" +
-                                ";PdfConverterArgs=" + Pdf.PdfConverterArgs + "\r\n\r\n" +
-                                
-                                ";PdfConverterPath=D:\\XlLog\\LibreOfficePortable\\LibreOfficeCalcPortable.exe\r\n" +
-                                ";PdfConverterArgs=- calc - invisible - convert - to pdf \"*Quelle*\" -outdir \"*Ziel*\"\r\n" +
-                                ";PdfConverterPath=D:\\XlLog\\XlOffice2Pdf.exe\r\n" +
-                                ";PdfConverterArgs=*Quelle* *Ziel*\r\n" +
-                                ";PdfConverterPath=D:\\XlLog\\Xl2Pdf.exe\r\n" +
-                                ";PdfConverterArgs=*Quelle* *Ziel*\r\n" +
+                                ";;PdfConverterPath=D:\\XlLog\\XlOffice2Pdf.exe\r\n" +
+                                ";PdfConverterArgs=" + Pdf.PdfConverterArgs + "\r\n" +
+                                //";PdfConverterArgs=*Quelle* *Ziel*\r\n" +
 
                                 "\r\n[Druck]\r\n" +
                                 ";PrintStartHour=" + Print.PrintStartHour + "\r\n" +
                                 ";PrintAppPath=" + Print.PrintAppPath + "\r\n" +
-                                ";PrintAppArgs=" + Print.PrinterAppArgs + "\r\n\r\n" +
-
-                                ";PrintAppPath=D:\\XlLog\\XlOfficePrint.exe\r\n" + 
-                                ";PrintAppPath=D:\\XlLog\\PdfToPrinter.exe\r\n" +
-                                ";PrintAppArgs=\"*Quelle*\" \"HP OfficeJet Pro 8210\" pages=*Seiten*\r\n" 
-                                
-                                );
+                                ";;PrintAppPath=D:\\XlLog\\XlOfficePrint.exe\r\n" +
+                                ";PrintAppArgs=" + Print.PrinterAppArgs + "\r\n" +
+                                ";;PrintAppArgs=\"*Quelle*\" \"HP OfficeJet Pro 8210\" pages=*Seiten*\r\n"
+                                ); ;
                 }
                 catch (Exception ex)
                 {
-                    Log.Write(Log.Category.FileSystem, -902060750, string.Format("Die Konfigurationsdatei konnte nicht gefunden oder erstellt werden: {0}\r\n\t\t Typ: {1} \r\n\t\t Fehlertext: {2}  \r\n\t\t InnerException: {3}", configPath, ex.GetType().ToString(), ex.Message, ex.InnerException));
+                    Log.Write(Log.Cat.FileSystem, Log.Prio.Error, 020102, string.Format("Die Konfigurationsdatei konnte nicht gefunden oder erstellt werden: {0}\r\n\t\t Typ: {1} \r\n\t\t Fehlertext: {2}  \r\n\t\t InnerException: {3}", configPath, ex.GetType().ToString(), ex.Message, ex.InnerException));
                     Console.WriteLine("FEHLER beim Erstellen von {0}. Siehe Log.", configPath);
-                    Program.AppErrorOccured = true;
+                    //Program.AppErrorOccured = true;
                 }
             }
         }
@@ -86,7 +90,7 @@ namespace Kreutztraeger
         internal static void LoadConfig()
         {
             //Console.WriteLine("LoadConfig() gestartet.");
-            Log.Write(Log.Category.MethodCall, 1911281128, string.Format("LoadConfig()"));
+            Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 020103, string.Format("LoadConfig()"));
 
             string appDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string configPath = Path.Combine(appDir, ConfigFileName);
@@ -111,10 +115,18 @@ namespace Kreutztraeger
                         {
                             string[] item = line.Split('=');
                             string val = item[1].Trim();
-                            if (item.Length > 2) val += "=" + item[2].Trim();
+                            if (item.Length > 2)
+                            {
+                                for (int n = 2; n < item.Length; n++)
+                                {
+                                    val += "=" + item[n].Trim();
+                                }
+                            }
                             dict.Add(item[0].Trim(), val);
                         }
                     }
+
+                    if (dict.Count == 0) return;
 
                     //Dateipfade
                     string configVal = TagValueFromConfig(dict, "XlTemplateDayFilePath");
@@ -175,10 +187,21 @@ namespace Kreutztraeger
                     if (int.TryParse(configVal, out i))
                         Print.PrintStartHour = i;
 
+                    configVal = TagValueFromConfig(dict, "XlImmediatelyCreatePdf");
+                    if (int.TryParse(configVal, out i))
+                    {
+                        if (i > 0) Excel.XlImmediatelyCreatePdf = true;
+                        else Excel.XlImmediatelyCreatePdf = false;
+                    }
+
+                    configVal = TagValueFromConfig(dict, "StartTaskIntervallMinutes");
+                    if (int.TryParse(configVal, out i))
+                        Scheduler.StartTaskIntervallMinutes = i;
+
                     //String
                     configVal = TagValueFromConfig(dict, "InTouchDiscFlag");
                     if (configVal != null)
-                        Program.XlLogFlag = dict["InTouchDiscFlag"];
+                        Program.InTouchDiscXlLogFlag = dict["InTouchDiscFlag"];
 
                     configVal = TagValueFromConfig(dict, "InTouchDiscAlarm");
                     if (configVal != null)
@@ -210,16 +233,31 @@ namespace Kreutztraeger
                             Excel.XlPassword = configVal;
                         }
                     }
-                        
+
+                    configVal = TagValueFromConfig(dict, "InTouchDIntErrorNumber");
+                    if (configVal != null)                    
+                        Program.InTouchDIntErrorNumber = configVal;                    
+
+                    configVal = TagValueFromConfig(dict, "InTouchIntPrintBitMaskDay");
+                    if (configVal != null)                    
+                        Print.InTouchIntPrintBitMaskDay = configVal;
+                    
+                    configVal = TagValueFromConfig(dict, "InTouchIntPrintBitMaskMonth");
+                    if (configVal != null)                    
+                        Print.InTouchIntPrintBitMaskMonth = configVal;
+
+                    configVal = TagValueFromConfig(dict, "DataSource");
+                    if (configVal != null)
+                        Sql.DataSource = configVal;
                     
                 }
 
             }
             catch (Exception ex)
             {
-                Log.Write(Log.Category.FileSystem, -902060750, string.Format("Fehler beim Lesen der Konfigurationsdatei: \r\n\t\t{0}\r\n\t\t Typ: {1} \r\n\t\t Fehlertext: {2}  \r\n\t\t InnerException: {3}", configPath, ex.GetType().ToString(), ex.Message, ex.InnerException));
+                Log.Write(Log.Cat.FileSystem, Log.Prio.Error, 020104, string.Format("Fehler beim Lesen der Konfigurationsdatei: \r\n\t\t{0}\r\n\t\t Typ: {1} \r\n\t\t Fehlertext: {2}  \r\n\t\t InnerException: {3}", configPath, ex.GetType().ToString(), ex.Message, ex.InnerException));
                 Console.WriteLine("FEHLER beim Lesen von {0}. Siehe Log.", configPath);
-                Program.AppErrorOccured = true;
+                //Program.AppErrorOccured = true;
             }
         }
 
@@ -252,5 +290,40 @@ namespace Kreutztraeger
             return szOutStringBuild.ToString();
         }
 
+
+        /// <summary>
+        /// Sucht den Ordner XML im InTouch-Projekt unter
+        /// rootDir\Into*\*\XML
+        /// </summary>
+        /// <param name="rootDir">Stammverzeichnis bzw. Laufwerksbezeichnung wenn nicht im gleichen Laufwerk wie XlLog.exe</param>
+        private static string TryFindXmlDir(string rootDir = null)
+        {
+            if (rootDir == null) rootDir = Directory.GetDirectoryRoot(Assembly.GetExecutingAssembly().Location);
+
+            try
+            {
+                string[] IntoDirs = Directory.GetDirectories(rootDir, @"Into*"); // Direktes suchen im root-Verzeichnis gibt Fehlermeldung      
+                DirectoryInfo[] ProjectDirs = new DirectoryInfo(IntoDirs[0]).GetDirectories().OrderByDescending(o => o.LastWriteTime).ToArray(); // Jüngste Ordner = Log und aktueller Projektordner?
+
+                string xmlDir = Sql.XmlDir;
+
+                foreach (DirectoryInfo dir in ProjectDirs)
+                {
+                    if (dir.Name != "Log")
+                    {
+                        xmlDir = dir.GetDirectories("XML")[0].FullName;
+                        break;
+                    }
+                }
+
+                Sql.XmlDir = xmlDir;
+                //string xmlDir = Directory.GetDirectories(IntoDirs[0], @"XML", SearchOption.AllDirectories)[0];
+                return xmlDir;
+            }
+            catch
+            {
+                return Sql.XmlDir;
+            }                   
+        }
     }
 }
