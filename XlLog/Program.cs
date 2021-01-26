@@ -36,9 +36,9 @@ namespace Kreutztraeger
         internal static string InTouchDiscXlLogFlag = "XlLogUse"; // InTouch TagName, muss != 0 sein, damit diese *.exe weiter ausgeführt wird.
         internal static string InTouchDiscAlarm = "XlLogAlarm"; // Alarmvariable in InTouch zum Trennen von Makro-Alarmen und XlLog-Alarmen.
         internal static string InTouchDiscTimeOut = "XlLogTimeoutBit"; // Bit in Intouch zurücksetzen für Timeout-Umsetzung.
-        internal static string InTouchDiscSetCalculations = "ExBestStdWerte"; //Triggert in InTouch die Bildung von Mittelwerten zur vollen Stunde.
-        internal static string InTouchDiscResetHourCounter = "ExLöscheStdMin"; //Setzt in Intouch zur voleln Stunde Minutenzähler zurück.
-        internal static string InTouchDiscResetQuarterHourCounter = "ExLösche15StdMin"; //Setzt in Intouch zur Viertelstunde Minutenzähler zurück.
+        internal static string InTouchDiscSetCalculations = "XlLogBestStdWerte"; //Triggert in InTouch die Bildung von Mittelwerten zur vollen Stunde.
+        internal static string InTouchDiscResetHourCounter = "XlLogLöscheStdMin"; //Setzt in Intouch zur voleln Stunde Minutenzähler zurück.
+        internal static string InTouchDiscResetQuarterHourCounter = "XlLogLösche15StdMin"; //Setzt in Intouch zur Viertelstunde Minutenzähler zurück.
         internal static string InTouchDIntErrorNumber = "XlLogErrorNumber"; //An InTouch weiterzugebene Fehlernummer
         #endregion
 
@@ -57,6 +57,29 @@ namespace Kreutztraeger
                 Config.LoadConfig();
                 
                 Log.Write(Log.Cat.OnStart, Log.Prio.LogAlways, 010101, string.Format("Gestartet durch {0}, Debug {1}, V{2}", AppStartedBy, Log.DebugWord, System.Reflection.Assembly.GetExecutingAssembly().GetName().Version));
+
+                #region PDF erstellen per Drag&Drop
+                if (File.Exists(CmdArgs[0]) && Path.GetExtension(CmdArgs[0]) == ".xlsx")
+                {
+                    //Wenn der Pfad zu einer Excel-Dateie übergebenen wurde, diese in PDF umwandeln, danach beenden
+                    Console.WriteLine("Wandle Excel-Dateie in PDF " + CmdArgs[0]);
+                    Log.Write(Log.Cat.PdfWrite, Log.Prio.LogAlways, 010100, "Wandle Excel-Datei in PDF " + CmdArgs[0]);
+                    Pdf.CreatePdf(CmdArgs[0]);
+                    Console.WriteLine("Exel-Datei " + CmdArgs[0] + " umgewandelt in PDF.\r\nBeliebige Taste drücken zum Beenden...");
+                    Console.ReadKey();
+                    return;
+                }
+                else if (!File.Exists(CmdArgs[0]) && Directory.Exists(CmdArgs[0]))
+                {
+                    //Alle Excel-Dateien im übergebenen Ordner in PDF umwandeln, danach beenden
+                    Console.WriteLine("Wandle alle Excel-Dateien in PDF im Ordner " + CmdArgs[0]);
+                    Log.Write(Log.Cat.PdfWrite, Log.Prio.LogAlways, 010100, "Wandle alle Excel-Dateien in PDF im Ordner " + CmdArgs[0]);
+                    Pdf.CreatePdf4AllXlsxInDir(CmdArgs[0], false);
+                    Console.WriteLine("Exel-Dateien umgewandelt in " + CmdArgs[0] + "\r\nBeliebige Taste drücken zum Beenden...");
+                    Console.ReadKey();
+                    return;
+                }
+                #endregion
 
                 EmbededDLL.LoadDlls();
 
@@ -80,39 +103,69 @@ namespace Kreutztraeger
 
                 if (!File.Exists(NativeMethods.PtaccPath))
                 {
-                    Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010104, string.Format("Datei nicht gefunden: " + NativeMethods.PtaccPath));
-                    Console.WriteLine("ACHTUNG: Das Programm kann nicht ohne die Datei " + NativeMethods.PtaccPath + " ausgeführt werden und wird deshalb beendet. Beachte Log-Datei.");
 
-                    if (Path.GetDirectoryName(NativeMethods.PtaccPath).Contains(" (x86)"))
+                    Log.Write(Log.Cat.InTouchDB, Log.Prio.Info, 010104, string.Format("Datei für 64bit-OS nicht gefunden: " + NativeMethods.PtaccPath));
+
+                    if (!File.Exists(NativeMethods32.PtaccPath))
                     {
-                        Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010105, string.Format("Dieses Programm ist für ein 64-Bit Betriebssystem ausgelegt."));
+                        Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010104, string.Format("Datei für 64bit oder 32bit-OS nicht gefunden: \r\n" + 
+                            NativeMethods.PtaccPath + "\r\n" + 
+                            NativeMethods32.PtaccPath + "\r\n"));
+                        Console.WriteLine("ACHTUNG: Das Programm kann nicht ohne die Datei " + Path.GetFileName(NativeMethods32.PtaccPath) + " ausgeführt werden und wird deshalb beendet. Beachte Log-Datei.");
+                        Tools.Wait(10);
+                        return;
                     }
-                    else if (Path.GetDirectoryName(NativeMethods.PtaccPath).StartsWith(@"C:\Program Files\"))
+                    else
                     {
-                        Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010106, string.Format("Dieses Programm ist für ein 32-Bit Betriebssystem ausgelegt."));
-                    }                    
-
-                    Tools.Wait(10);
-                    return;
+                        InTouch.Is32BitSystem = true;
+                    }
+                }
+                else
+                {
+                    InTouch.Is32BitSystem = false;                  
                 }
 
                 if (!File.Exists(NativeMethods.WwheapPath))
                 {
-                    Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010107, string.Format("Datei nicht gefunden: " + NativeMethods.WwheapPath));
-                    Console.WriteLine("ACHTUNG: Das Programm kann nicht ohne die Datei " + NativeMethods.WwheapPath + " ausgeführt werden und wird deshalb beendet. Beachte Log-Datei.");
 
-                    if (Path.GetDirectoryName(NativeMethods.WwheapPath).Contains(" (x86)"))
-                    {
-                        Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010108, string.Format("Dieses Programm ist für ein 64-Bit Betriebssystem ausgelegt."));
-                    }
-                    else if (Path.GetDirectoryName(NativeMethods.PtaccPath).StartsWith(@"C:\Program Files\"))
-                    {
-                        Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010109, string.Format("Dieses Programm ist für ein 32-Bit Betriebssystem ausgelegt."));
-                    }
+                    Log.Write(Log.Cat.InTouchDB, Log.Prio.Info, 010104, string.Format("Datei für 64bit-OS nicht gefunden: " + NativeMethods.WwheapPath));
 
-                    Tools.Wait(10);
-                    return;
+                    if (!File.Exists(NativeMethods32.WwheapPath))
+                    {
+                        Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010104, string.Format("Datei für 64bit oder 32bit-OS nicht gefunden: \r\n" +
+                            NativeMethods.WwheapPath + "\r\n" +
+                            NativeMethods32.WwheapPath + "\r\n"));
+                        Console.WriteLine("ACHTUNG: Das Programm kann nicht ohne die Datei " + Path.GetFileName(NativeMethods32.WwheapPath) + " ausgeführt werden und wird deshalb beendet. Beachte Log-Datei.");
+                        Tools.Wait(10);
+                        return;
+                    }
+                    else
+                    {
+                        InTouch.Is32BitSystem = true;
+                    }
                 }
+                else
+                {
+                    InTouch.Is32BitSystem = false;                   
+                }
+
+                //if (!File.Exists(NativeMethods.WwheapPath))
+                //{
+                //    Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010107, string.Format("Datei nicht gefunden: " + NativeMethods.WwheapPath));
+                //    Console.WriteLine("ACHTUNG: Das Programm kann nicht ohne die Datei " + NativeMethods.WwheapPath + " ausgeführt werden und wird deshalb beendet. Beachte Log-Datei.");
+
+                //    if (Path.GetDirectoryName(NativeMethods.WwheapPath).Contains(" (x86)"))
+                //    {
+                //        Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010108, string.Format("Dieses Programm ist für ein 64-Bit Betriebssystem ausgelegt."));
+                //    }
+                //    else if (Path.GetDirectoryName(NativeMethods.PtaccPath).StartsWith(@"C:\Program Files\"))
+                //    {
+                //        Log.Write(Log.Cat.InTouchDB, Log.Prio.Error, 010109, string.Format("Dieses Programm ist für ein 32-Bit Betriebssystem ausgelegt."));
+                //    }
+
+                //    Tools.Wait(10);
+                //    return;
+                //}
 
                 if (!File.Exists(Excel.XlTemplateDayFilePath))
                 {

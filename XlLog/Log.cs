@@ -96,11 +96,11 @@ namespace Kreutztraeger
         private static void LogWrite(string errorNo, string logMessage) //Fehlernummern siehe Log.cs 0702ZZ
         {
             string logPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Log");
-            //logPath = Path.Combine(logPath, DateTime.Now.Year.ToString()); //11.09.2020 Jahresordner weglassen
+            logPath = Path.Combine(logPath, DateTime.Now.Year.ToString()); //Jahresordner
             Directory.CreateDirectory(logPath);
             //logPath = Path.Combine(logPath, DateTime.Now.Month.ToString("00"));
             //Directory.CreateDirectory(logPath);
-            logPath = Path.Combine(logPath, string.Format("Log_{0}.txt", DateTime.Now.ToString("yyyy_MM")));
+            logPath = Path.Combine(logPath, string.Format("Log_{0}.txt", DateTime.Now.ToString("yyyyMM")));
 
             using (StreamWriter w = File.AppendText(logPath))
             {

@@ -42,8 +42,7 @@ namespace Kreutztraeger
 
                 if (!File.Exists(Pdf.PdfConverterPath))
                 {
-                    Log.Write(Log.Cat.FileSystem, Log.Prio.Error, 080104, string.Format("Der PDF-Converter {0} konnte nicht gefunden werden.", PdfConverterPath));
-                    //Program.AppErrorOccured = true;
+                    Log.Write(Log.Cat.FileSystem, Log.Prio.Error, 080104, string.Format("Der PDF-Converter {0} konnte nicht gefunden werden.", PdfConverterPath));                    
                 }
                 else
                 {
@@ -116,6 +115,12 @@ namespace Kreutztraeger
         {
             Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 080301, string.Format("CreatePdf4AllXlsxInDir({0})", DirPath));
             Console.WriteLine("Prüfe Ordner " + DirPath);
+
+            if (!Directory.Exists(DirPath))
+            {
+                Log.Write(Log.Cat.PdfWrite, Log.Prio.Error, 080304, "PDF erstellen: Der übergebene Ordner ist ungültig:" + DirPath);
+                return;
+            }
 
             foreach (string filePath in Directory.GetFiles(DirPath, "*.xlsx"))
             {

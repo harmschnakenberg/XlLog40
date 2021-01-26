@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Automatische Excel-Aufzeichnungen für Ihre Kälteanlage. Benötigt .NET Framework 4.0 oder höher")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Kreutzträger Kältetechnik")]
-[assembly: AssemblyProduct("XlLog 64Bit")]
+[assembly: AssemblyProduct("XlLog Tabellenaufzeichnung")]
 [assembly: AssemblyCopyright("Copyright © 2020")]
 [assembly: AssemblyTrademark("Kreutzträger Kältetechnik")]
 [assembly: AssemblyCulture("")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder Standardwerte für die Build- und Revisionsnummern verwenden,
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.4.6.*")]
-[assembly: AssemblyFileVersion("1.4.6")]
+[assembly: AssemblyVersion("1.5.0.*")]
+[assembly: AssemblyFileVersion("1.5.0")]

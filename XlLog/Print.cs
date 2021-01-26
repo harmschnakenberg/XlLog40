@@ -18,8 +18,8 @@ namespace Kreutztraeger
 
         internal static string PrinterAppArgs { get; set; } = "*Quelle*";
 
-        internal static string InTouchIntPrintBitMaskDay { get; set; } = "ExT_Druck";
-        internal static string InTouchIntPrintBitMaskMonth { get; set; } = "ExM_Druck";
+        internal static string InTouchIntPrintBitMaskDay { get; set; } = "XlLogT_Druck";
+        internal static string InTouchIntPrintBitMaskMonth { get; set; } = "XlLogM_Druck";
 
         /// <summary>
         /// Schreibt das Aktuelle Datum mit der Uhrzeit 'PrintStartHour' in eine Textdatei im Stammordner als Referenz für den letzten Druckzeitpunkt.
@@ -142,7 +142,7 @@ namespace Kreutztraeger
                     int secondsToPrint = 30;
                     if (!exeProcess.WaitForExit(secondsToPrint * 1000))
                     {
-                        Log.Write(Log.Cat.Print, Log.Prio.Error, 090305, string.Format("Der Druckauftrag konnte nicht in der vorgegebenen Zeit von {0} sec. abgeschlossen werden.", secondsToPrint) );
+                        Log.Write(Log.Cat.Print, Log.Prio.LogAlways, 090305, string.Format("Der Druckauftrag konnte nicht in der vorgegebenen Zeit von {0} sec. abgeschlossen werden.", secondsToPrint) );
                     }
                 }
             }
@@ -184,16 +184,34 @@ namespace Kreutztraeger
             Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 090501, string.Format("PrintRoutine()"));
 
             string file = Excel.CeateXlFilePath(-1);
-            int BitMaskSheets = (int)InTouch.ReadTag(InTouchIntPrintBitMaskDay);
-            //Console.WriteLine("Prüfe Druck " + file + " " + BitMaskSheets);
-            Print.PrintReport(file, BitMaskSheets);
+
+            try
+            {
+                int BitMaskSheets = (int)InTouch.ReadTag(InTouchIntPrintBitMaskDay);
+                //Console.WriteLine("Prüfe Druck " + file + " " + BitMaskSheets);
+                Print.PrintReport(file, BitMaskSheets);
+            }
+            catch (InvalidCastException cast_ex)
+            {
+                Log.Write(Log.Cat.InTouchVar, Log.Prio.Error, 090502, "TagName >" + InTouchIntPrintBitMaskDay + "< konnte nicht als Zahl gelesen werden. " + cast_ex.Message);
+            }
 
             if (DateTime.Now.Day == 1)
             {
                 file = Excel.CeateXlFilePath(-1, true);
-                BitMaskSheets = (int)InTouch.ReadTag(InTouchIntPrintBitMaskMonth);
-                //Console.WriteLine("Prüfe Druck " + file + " " + BitMaskSheets);
-                Print.PrintReport(file, BitMaskSheets);
+
+                try
+                {
+                    int BitMaskSheets = (int)InTouch.ReadTag(InTouchIntPrintBitMaskMonth);
+                    //Console.WriteLine("Prüfe Druck " + file + " " + BitMaskSheets);
+                    Print.PrintReport(file, BitMaskSheets);
+                }
+                catch (InvalidCastException cast_ex)
+                {
+                    Log.Write(Log.Cat.InTouchVar, Log.Prio.Error, 090503, "TagName >" + InTouchIntPrintBitMaskMonth + "< konnte nicht als Zahl gelesen werden. " + cast_ex.Message);
+                }
+
+
             }
         }
     }

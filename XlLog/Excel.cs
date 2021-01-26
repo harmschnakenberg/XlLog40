@@ -153,14 +153,15 @@ namespace Kreutztraeger
 
                         //Am letzten Tag des Monats wird der Vormonat nochmal geprüft.
                         if (DateTime.Now.Day == DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month))
-                        {                            
-                            Pdf.CreatePdf4AllXlsxInDir(CeateXlFilePath(-DateTime.Now.Day-2, false, 0, true));
+                        {
+                            Pdf.CreatePdf4AllXlsxInDir(CeateXlFilePath(-DateTime.Now.Day - 2, false, 0, true));
                         }
 
                         #endregion
 
                         break;
-                }         
+                }
+                
                 #endregion
 
                 #region Monatstabelle, Monats-PDF schreiben 
@@ -297,7 +298,7 @@ namespace Kreutztraeger
             {                
                 if (!File.Exists(xlThisMonthFilePath) || !File.Exists(xlLastYearMonthFilePath) || !File.Exists(Excel.XlTemplateMonthFilePath))
                 {
-                    Log.Write(Log.Cat.ExcelRead, Log.Prio.Warning, 040302, string.Format("Letztjahreswerte konnten nicht in die Datei {0} eingetragen werden. Es fehlen Quelldateien.\r\n\t\t\t\tLetztes Jahr vorhanden: {1}\r\n\t\t\t\tMonatsvorlage vorhanden: {2}\r\n\t\t\t\taktuelle Monatsdatei vorhanden: {3}", xlThisMonthFilePath, File.Exists(xlLastYearMonthFilePath), File.Exists(Excel.XlTemplateMonthFilePath), File.Exists(xlThisMonthFilePath)));
+                    Log.Write(Log.Cat.ExcelRead, Log.Prio.Warning, 040302, string.Format("Letztjahreswerte konnten nicht in die Datei {0} eingetragen werden. Es fehlen Quelldateien.\r\n\t\t\tLetztes Jahr vorhanden: {1}\r\n\t\t\tMonatsvorlage vorhanden: {2}\r\n\t\t\taktuelle Monatsdatei vorhanden: {3}", xlThisMonthFilePath, File.Exists(xlLastYearMonthFilePath), File.Exists(Excel.XlTemplateMonthFilePath), File.Exists(xlThisMonthFilePath)));
                     //kein Fehler
                     return;
                 }
@@ -549,16 +550,21 @@ namespace Kreutztraeger
                 {
                     foreach (FileInfo xlDayFileInfo in xlDayFileList)
                     {
-                        //Überspringe temporäre Dateien
-                        if (xlDayFileInfo.Name.StartsWith("~")) continue;
+                        //Überspringe temporäre Dateien 
+                        // if (xlDayFileInfo.Name.StartsWith("~")) continue;
 
-                        //Nehme den Tag aus dem Dateinamen, da Erstelldatum nicht eindeutig ist (T01... wird erst am 2. Tag um 0:15 Uhr erzeugt.)!
-                        int.TryParse(xlDayFileInfo.Name.Substring(2, 2), out int dayNo); // Dateiname-Muster: M_ddmmyyyy.xlsx
-                                                                                         //Log.Write(Log.Category.FileSystem, 2001201441, "Lese Tabelle von Tag Nr. " + dayNo);
-                        if (dayNo < DateTime.Now.Day || DateTime.Now.Day == 1) // am 1. des Monats alle Dateien des Vormonats zusammenfassen.
+                        // neu 06.10.2020: Überspringe wenn Name nicht mit "T_" anfängt oder länger als ist als das Muster
+                        if (!xlDayFileInfo.Name.StartsWith("T_") || xlDayFileInfo.Name.Length > 15) continue;
+
+                        //Nehme den Tag aus dem Dateinamen, da Erstelldatum nicht eindeutig ist (T_01... wird erst am 2. Tag um 0:15 Uhr erzeugt.)!
+                        if (int.TryParse(xlDayFileInfo.Name.Substring(2, 2), out int dayNo)) // Dateiname-Muster: M_ddmmyyyy.xlsx
                         {
-                            List<List<string>> valuesDay = XlReadRowValues(xlDayFileInfo.FullName, sumRowNo, true);
-                            allDayValues.Add(dayNo, valuesDay);
+                            //Log.Write(Log.Category.FileSystem, 2001201441, "Lese Tabelle von Tag Nr. " + dayNo);
+                            if (dayNo < DateTime.Now.Day || DateTime.Now.Day == 1) // am 1. des Monats alle Dateien des Vormonats zusammenfassen.
+                            {
+                                List<List<string>> valuesDay = XlReadRowValues(xlDayFileInfo.FullName, sumRowNo, true);
+                                allDayValues.Add(dayNo, valuesDay);
+                            }
                         }
                     }
                 }
@@ -705,9 +711,9 @@ namespace Kreutztraeger
 
                         #region Lese InTouch-Werte
 
-                        NativeMethods intouch = new NativeMethods(0, 0);
+                      //  NativeMethods intouch = new NativeMethods(0, 0); //Ungetestet: Wenn keine Fehler beim lesen der TagNames auftreten: löschen
 
-                        int SchockNr = intouch.ReadInteger("SchockNr");
+                        int SchockNr = (int)InTouch.ReadTag("SchockNr"); // intouch.ReadInteger("SchockNr");
                         if (SchockNr < 1)
                         {
                             Log.Write(Log.Cat.InTouchVar, Log.Prio.Warning, 040703, "InTouch-Tag \"SchockNr\": Es wurde kein Schockkkühler definiert.");
@@ -756,11 +762,11 @@ namespace Kreutztraeger
                         // neuen Schockkühlvorgang starten
                         if (IsSchockStart)
                         {
-                            string ChargenNrS = intouch.ReadString("ChargenNrS");
-                            int SchockRProgX = intouch.ReadInteger("SchockRProg" + SchockNr);
-                            int SchockSollDauer = intouch.ReadInteger("SchockSollDauer");
-                            float ProductStartTemp = intouch.ReadFloat(ProductTempTagNames[SchockNr - 1]);
-                            float RoomStartTemp = intouch.ReadFloat(RoomTempTagNames[SchockNr - 1]);
+                            string ChargenNrS = (string)InTouch.ReadTag("ChargenNrS"); //intouch.ReadString("ChargenNrS");
+                            int SchockRProgX = (int)InTouch.ReadTag("SchockRProg" + SchockNr); //intouch.ReadInteger("SchockRProg" + SchockNr);
+                            int SchockSollDauer = (int)InTouch.ReadTag("SchockSollDauer");// intouch.ReadInteger("SchockSollDauer");
+                            float ProductStartTemp = (float)InTouch.ReadTag(ProductTempTagNames[SchockNr - 1]); // intouch.ReadFloat(ProductTempTagNames[SchockNr - 1]);
+                            float RoomStartTemp = (float)InTouch.ReadTag(RoomTempTagNames[SchockNr - 1]); //intouch.ReadFloat(RoomTempTagNames[SchockNr - 1]);
 
                             Log.Write(Log.Cat.ExcelShock, Log.Prio.LogAlways, 040706, string.Format(
                                 "Neuer Vorgang wird in Zeile {0} geschrieben: Schockkühler {1}, Charge {2}, Programm {3}, max. Soll-Dauer {4} min, Temp. R{5:F1}°C/P{6:F1}°C", 
@@ -777,12 +783,12 @@ namespace Kreutztraeger
                         }
                         else 
                         {
-                            float ProductEndTemp = intouch.ReadFloat(ProductTempTagNames[SchockNr - 1]);
-                            float RoomEndTemp = intouch.ReadFloat(RoomTempTagNames[SchockNr - 1]);
-                            float SchockMinX = intouch.ReadFloat("SchockMin" + SchockNr);
-                            float SchockMaxX = intouch.ReadFloat("SchockMax" + SchockNr);
-                            float SchockMinXK = intouch.ReadFloat("SchockMin" + SchockNr + "K");
-                            float SchockMaxXK = intouch.ReadFloat("SchockMax" + SchockNr + "K");
+                            float ProductEndTemp = (float)InTouch.ReadTag(ProductTempTagNames[SchockNr - 1]); //intouch.ReadFloat(ProductTempTagNames[SchockNr - 1]);
+                            float RoomEndTemp = (float)InTouch.ReadTag(RoomTempTagNames[SchockNr - 1]); //intouch.ReadFloat(RoomTempTagNames[SchockNr - 1]);
+                            float SchockMinX = (float)InTouch.ReadTag("SchockMin" + SchockNr); //intouch.ReadFloat("SchockMin" + SchockNr);
+                            float SchockMaxX = (float)InTouch.ReadTag("SchockMax" + SchockNr); //intouch.ReadFloat("SchockMax" + SchockNr);
+                            float SchockMinXK = (float)InTouch.ReadTag("SchockMin" + SchockNr + "K"); //intouch.ReadFloat("SchockMin" + SchockNr + "K");
+                            float SchockMaxXK = (float)InTouch.ReadTag("SchockMax" + SchockNr + "K"); //intouch.ReadFloat("SchockMax" + SchockNr + "K");
 
                             Log.Write(Log.Cat.ExcelShock, Log.Prio.LogAlways, 040707, string.Format(
                                 "Vorgang Schockkühler {0} in Zeile {1} beendet. Ende R{2:F1}°C/P{3:F1}°C, Min R{4:F1}°C/P{5:F1}°C, Max R{6:F1}°C/P{7:F1}°C", 
@@ -930,9 +936,10 @@ namespace Kreutztraeger
                         ++wsCount;
 
                         //loop all columns in a row
-                        for (int col = worksheet.Dimension.Start.Column; col < worksheet.Dimension.End.Column; col++)
+                        for (int col = worksheet.Dimension.Start.Column; col <= worksheet.Dimension.End.Column; col++) //vorher nur kleiner als -> letzte Splate wurde nicht gefüllt
                         {
                             var val = worksheet.Cells[row, col].Value;
+                            
                             Console.WriteLine("R{0},C{1}", row, col);
 
                             //add the cell data to the List 
@@ -1112,7 +1119,10 @@ namespace Kreutztraeger
                             Log.Write(Log.Cat.ExcelRead, Log.Prio.Info, 041304, string.Format("Bezeichnung \"{1}\" nicht in Workbook {0} gefunden und deshalb neu erstellt.", xlWorkbookFilePath, xlNamedRangeName));
                         }
                     }
-
+                                        
+                    //Test: Im unteren Monatstabellen-Diagramm werden die Jaherszahlen im PDF manchmal nicht richtig angezeigt.
+                    excelPackage.Workbook.Calculate();
+                 
                     //save the changes
                     excelPackage.Save();
                 }

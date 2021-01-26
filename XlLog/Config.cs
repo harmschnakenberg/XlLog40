@@ -26,7 +26,9 @@ namespace Kreutztraeger
             {
                 try
                 {
-                    w.WriteLine("[öäü " + w.Encoding.EncodingName + ", Build " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version +"]\r\n" +
+                    string _64Bit = InTouch.Is32BitSystem ? "32 Bit" : "64 Bit";
+                                         
+                    w.WriteLine("[" + _64Bit + " öäü " + w.Encoding.EncodingName + ", Build " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version +"]\r\n" +
                                 "\r\n[Intern]\r\n" +
                                 ";DebugWord=" + Log.DebugWord + "\r\n" +
                                 ";WaitToClose=" + Tools.WaitToClose + "\r\n" +
@@ -104,13 +106,13 @@ namespace Kreutztraeger
                     Console.WriteLine("Neue Config.ini angelegt unter " + configPath);
                 }
                 else
-                { 
-                    string configAll = System.IO.File.ReadAllText(configPath, System.Text.Encoding.UTF8); 
+                {
+                    string configAll = System.IO.File.ReadAllText(configPath, System.Text.Encoding.UTF8);
                     char[] delimiters = new char[] { '\r', '\n' };
                     string[] configLines = configAll.Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
                     Dictionary<string, string> dict = new Dictionary<string, string>();
                     foreach (string line in configLines)
-                    {                        
+                    {
                         if (line[0] != ';' && line[0] != '[')
                         {
                             string[] item = line.Split('=');
@@ -128,7 +130,7 @@ namespace Kreutztraeger
 
                     if (dict.Count == 0) return;
 
-                    //Dateipfade
+                    #region Dateipfade
                     string configVal = TagValueFromConfig(dict, "XlTemplateDayFilePath");
                     if (File.Exists(configVal))
                         Excel.XlTemplateDayFilePath = configVal;
@@ -136,8 +138,8 @@ namespace Kreutztraeger
                     configVal = TagValueFromConfig(dict, "XlTemplateMonthFilePath");
                     if (File.Exists(configVal))
                         Excel.XlTemplateMonthFilePath = configVal;
-
-                    //Ordnerpfade
+                    #endregion
+                    #region Ordnerpfade
                     configVal = TagValueFromConfig(dict, "XlArchiveDir");
                     if (Directory.Exists(configVal))
                         Excel.XlArchiveDir = configVal;
@@ -153,8 +155,8 @@ namespace Kreutztraeger
                     configVal = TagValueFromConfig(dict, "PrintAppPath");
                     if (File.Exists(configVal))
                         Print.PrintAppPath = configVal;
-
-                    //Integer
+                    #endregion
+                    #region Integer
                     configVal = TagValueFromConfig(dict, "XlDayFileFirstRowToWrite");
                     if (int.TryParse(configVal, out int i))
                         Excel.XlDayFileFirstRowToWrite = i;
@@ -197,8 +199,8 @@ namespace Kreutztraeger
                     configVal = TagValueFromConfig(dict, "StartTaskIntervallMinutes");
                     if (int.TryParse(configVal, out i))
                         Scheduler.StartTaskIntervallMinutes = i;
-
-                    //String
+                    #endregion
+                    #region String
                     configVal = TagValueFromConfig(dict, "InTouchDiscFlag");
                     if (configVal != null)
                         Program.InTouchDiscXlLogFlag = dict["InTouchDiscFlag"];
@@ -211,6 +213,31 @@ namespace Kreutztraeger
                     if (configVal != null)
                         Program.InTouchDiscTimeOut = dict["InTouchDiscTimeOut"];
 
+
+                    configVal = TagValueFromConfig(dict, "InTouchDiscSetCalculations");
+                    if (configVal != null)
+                        Program.InTouchDiscSetCalculations = dict["InTouchDiscSetCalculations"];
+
+                    configVal = TagValueFromConfig(dict, "InTouchDiscResetHourCounter");
+                    if (configVal != null)
+                        Program.InTouchDiscResetHourCounter = dict["InTouchDiscResetHourCounter"];
+
+                    configVal = TagValueFromConfig(dict, "InTouchDiscResetQuarterHourCounter");
+                    if (configVal != null)
+                        Program.InTouchDiscResetQuarterHourCounter = dict["InTouchDiscResetQuarterHourCounter"];
+
+                    configVal = TagValueFromConfig(dict, "InTouchDIntErrorNumber");
+                    if (configVal != null)
+                        Program.InTouchDIntErrorNumber = configVal;
+
+                    configVal = TagValueFromConfig(dict, "InTouchIntPrintBitMaskDay");
+                    if (configVal != null)
+                        Print.InTouchIntPrintBitMaskDay = configVal;
+
+                    configVal = TagValueFromConfig(dict, "InTouchIntPrintBitMaskMonth");
+                    if (configVal != null)
+                        Print.InTouchIntPrintBitMaskMonth = configVal;
+
                     configVal = TagValueFromConfig(dict, "PdfConverterArgs");
                     if (configVal != null)
                         Pdf.PdfConverterArgs = configVal;
@@ -218,7 +245,7 @@ namespace Kreutztraeger
                     configVal = TagValueFromConfig(dict, "PrintAppArgs");
                     if (configVal != null)
                         Print.PrinterAppArgs = configVal;
-                    
+
                     configVal = TagValueFromConfig(dict, "XlPassword");
                     if (configVal != null)
                     {
@@ -234,22 +261,10 @@ namespace Kreutztraeger
                         }
                     }
 
-                    configVal = TagValueFromConfig(dict, "InTouchDIntErrorNumber");
-                    if (configVal != null)                    
-                        Program.InTouchDIntErrorNumber = configVal;                    
-
-                    configVal = TagValueFromConfig(dict, "InTouchIntPrintBitMaskDay");
-                    if (configVal != null)                    
-                        Print.InTouchIntPrintBitMaskDay = configVal;
-                    
-                    configVal = TagValueFromConfig(dict, "InTouchIntPrintBitMaskMonth");
-                    if (configVal != null)                    
-                        Print.InTouchIntPrintBitMaskMonth = configVal;
-
                     configVal = TagValueFromConfig(dict, "DataSource");
                     if (configVal != null)
                         Sql.DataSource = configVal;
-                    
+                    #endregion
                 }
 
             }
