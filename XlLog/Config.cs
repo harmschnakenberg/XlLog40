@@ -36,7 +36,8 @@ namespace Kreutztraeger
                                 ";StartTaskIntervallMinutes=" + Scheduler.StartTaskIntervallMinutes + "\r\n" +
                                 // ";DataSource=" + Sql.DataSource + "\r\n" +
                                 ";;DataSource=" + Environment.MachineName + "\r\n" +
-                                
+                                ";UseTaskScheduler=" + (Scheduler.UseTaskScheduler ? "1":"0") + "\r\n" +
+
                                 "\r\n[InTouch]\r\n" +
                                 ";InTouchDiscFlag=" + Program.InTouchDiscXlLogFlag + "\r\n" +
                                 ";InTouchDiscAlarm=" + Program.InTouchDiscAlarm + "\r\n" +
@@ -62,7 +63,7 @@ namespace Kreutztraeger
                                 ";XlNegOffsetMin=" + Excel.XlNegOffsetMin + "\r\n" +
 
                                 "\r\n[PDF]\r\n" +
-                                ";XlImmediatelyCreatePdf=0\r\n" +
+                                ";XlImmediatelyCreatePdf=" + (Excel.XlImmediatelyCreatePdf ? "1" : "0") + "\r\n"  +
                                 ";PdfConvertStartHour=" + Pdf.PdfConvertStartHour + "\r\n" +
                                 ";PdfConverterPath=" + Pdf.PdfConverterPath + "\r\n" +
                                 ";;PdfConverterPath=D:\\XlLog\\XlOffice2Pdf.exe\r\n" +
@@ -75,7 +76,7 @@ namespace Kreutztraeger
                                 ";;PrintAppPath=D:\\XlLog\\XlOfficePrint.exe\r\n" +
                                 ";PrintAppArgs=" + Print.PrinterAppArgs + "\r\n" +
                                 ";;PrintAppArgs=\"*Quelle*\" \"HP OfficeJet Pro 8210\" pages=*Seiten*\r\n"
-                                ); ;
+                                );
                 }
                 catch (Exception ex)
                 {
@@ -194,6 +195,13 @@ namespace Kreutztraeger
                     {
                         if (i > 0) Excel.XlImmediatelyCreatePdf = true;
                         else Excel.XlImmediatelyCreatePdf = false;
+                    }
+
+                    configVal = TagValueFromConfig(dict, "UseTaskSheduler");
+                    if (int.TryParse(configVal, out i))
+                    {
+                        if (i > 0) Scheduler.UseTaskScheduler = true;
+                        else Scheduler.UseTaskScheduler = false;
                     }
 
                     configVal = TagValueFromConfig(dict, "StartTaskIntervallMinutes");

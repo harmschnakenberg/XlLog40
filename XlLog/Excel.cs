@@ -111,12 +111,18 @@ namespace Kreutztraeger
                         Pdf.CreatePdfFromCmd();
                         break;
                     case "Uhrstellen":
-                        SetNewSystemTime.SetNewSystemtimeAndScheduler(Program.CmdArgs[1] + " " + Program.CmdArgs[2]);
+                        if (Program.CmdArgs.Length > 2)
+                        {
+                            SetNewSystemTime.SetNewSystemtimeAndScheduler(Program.CmdArgs[1] + " " + Program.CmdArgs[2]);
+                        }
                         break;
                     case "Monatsdatei":
-                        string pathMonthFile = Program.CmdArgs[1];
-                        string xlDayFilesDir = Program.CmdArgs[2];
-                        Excel.XlNewMonthFileWriteRow(pathMonthFile, xlDayFilesDir);
+                        if (Program.CmdArgs.Length > 2)
+                        {
+                            string pathMonthFile = Program.CmdArgs[1];
+                            string xlDayFilesDir = Program.CmdArgs[2];
+                            Excel.XlNewMonthFileWriteRow(pathMonthFile, xlDayFilesDir);
+                        }
                         break;
                     default:
 
@@ -386,6 +392,10 @@ namespace Kreutztraeger
                 // Wenn Zeit um Stundensprung, ermittle Mittelwerte in InTouch; Setzte ExBestStdWerte
                 Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 040403, string.Format("Setze InTouch-Variable >{0}< = {1}.", Program.InTouchDiscSetCalculations, true));
                 InTouch.WriteDiscTag(Program.InTouchDiscSetCalculations, true);
+
+                //neu 4.5.2021: Warte nochmal, weil Skript für Mittelwerte bis zu 5 sek benötigt
+                Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 040406, "Warte auf InTouch-Skripte.");
+                Tools.Wait(Tools.WaitForScripts);
             }
 
             Tools.Wait((int)Tools.WaitForScripts/4);
@@ -503,7 +513,7 @@ namespace Kreutztraeger
                     //save the changes
                     excelPackage.Save();
 
-                    Log.Write(Log.Cat.Info, Log.Prio.Info, 040505, string.Format("In {0} wurden in {1} Tabellenblätter {2} Werte bearbeitet.", Path.GetFileName(xlFilePath), content.Count, content.SelectMany(list => list).Distinct().Count()));
+                    Log.Write(Log.Cat.Info, Log.Prio.Info, 040505, string.Format("In {0} wurden in {1} Tabellenblättern {2} Werte bearbeitet.", Path.GetFileName(xlFilePath), content.Count, content.SelectMany(list => list).Distinct().Count()));
                 }
             }
             catch(InvalidOperationException)
@@ -614,7 +624,7 @@ namespace Kreutztraeger
                             }
                             catch (Exception exTest)
                             {
-                                Log.Write(Log.Cat.ExcelRead, Log.Prio.Error, 040604, "Fehler in foreach (string item in WorksheetsItemsM) \r\n\t" + exTest.Message + " \r\n\t" + exTest.StackTrace);
+                                Log.Write(Log.Cat.ExcelRead, Log.Prio.Error, 040604, "Fehler in foreach (string item in WorksheetsItemsM)\r\nSpalte " + col + "\r\n\t" + exTest.Message + " \r\n\t" + exTest.StackTrace );
                                 //Program.AppErrorOccured = true;
                             }
                             excelPackage.Workbook.Worksheets[worksheetNo].PrinterSettings.PaperSize = ePaperSize.A4;
@@ -905,7 +915,9 @@ namespace Kreutztraeger
         /// <param name="xlFilePath">Pfad zum Excel-Sheet</param>
         /// <param name="worksheetNo">Lfd. Nr. des Tabellenblatts</param>
         /// <param name="row">Nummer der zu lesenden Zeile </param>
-        /// <returns>Liste der Zellenwerte in dieser Reihe. Listen-Eintrag "DoNotChangeCell" markiert, dass Zellwerte beim Schreiben der Liste nicht geändert werden sollen.</returns>
+        /// <returns>Liste der Zellenwerte in dieser Reihe. Listen-Eintrag "DoNotChangeCell" markiert, dass Zellwerte beim Schreiben der Liste nicht geändert werden sollen.
+        /// neu 10.03.2021: Wenn Listen-Eintrag eine Formel enthält wie "DoNotChangeCell".
+        /// </returns>
         public static List<List<string>> XlReadRowValues(string xlFilePath, int row, bool recordBGColoredCells = false) //Fehlernummern siehe Log.cs 0410ZZ
         {
             Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 041001, string.Format("XlReadRowValues({0},{1},{2})", xlFilePath, row, recordBGColoredCells));
@@ -936,16 +948,20 @@ namespace Kreutztraeger
                         ++wsCount;
 
                         //loop all columns in a row
-                        for (int col = worksheet.Dimension.Start.Column; col <= worksheet.Dimension.End.Column; col++) //vorher nur kleiner als -> letzte Splate wurde nicht gefüllt
+                        for (int col = worksheet.Dimension.Start.Column; col <= worksheet.Dimension.End.Column; col++) //vorher nur kleiner als -> letzte Spalte wurde nicht gefüllt
                         {
                             var val = worksheet.Cells[row, col].Value;
                             
-                            Console.WriteLine("R{0},C{1}", row, col);
+                            //Console.Write("R{0},C{1} | ", row, col);
 
                             //add the cell data to the List 
                             if (val == null)
                             {
                                 excelData[wsCount].Add("");
+                            } 
+                            else if (val.ToString().StartsWith("=") ) //neu 10.03.2021; #UNGETESTET# Wenn die Zelle eine Formel enthält
+                            {
+                                excelData[wsCount].Add("DoNotChangeCell");
                             }
                             else
                             {

@@ -52,32 +52,44 @@ namespace Kreutztraeger
                 CmdArgs = args;
 
                 if (CmdArgs.Length < 1) AppStartedBy = Environment.UserName;
-                else AppStartedBy = CmdArgs[0].Remove(0, 1);
-
+                else
+                {
+                    AppStartedBy = CmdArgs[0].Remove(0, 1);
+                }
                 Config.LoadConfig();
                 
                 Log.Write(Log.Cat.OnStart, Log.Prio.LogAlways, 010101, string.Format("Gestartet durch {0}, Debug {1}, V{2}", AppStartedBy, Log.DebugWord, System.Reflection.Assembly.GetExecutingAssembly().GetName().Version));
 
                 #region PDF erstellen per Drag&Drop
-                if (File.Exists(CmdArgs[0]) && Path.GetExtension(CmdArgs[0]) == ".xlsx")
+                try
                 {
-                    //Wenn der Pfad zu einer Excel-Dateie übergebenen wurde, diese in PDF umwandeln, danach beenden
-                    Console.WriteLine("Wandle Excel-Dateie in PDF " + CmdArgs[0]);
-                    Log.Write(Log.Cat.PdfWrite, Log.Prio.LogAlways, 010100, "Wandle Excel-Datei in PDF " + CmdArgs[0]);
-                    Pdf.CreatePdf(CmdArgs[0]);
-                    Console.WriteLine("Exel-Datei " + CmdArgs[0] + " umgewandelt in PDF.\r\nBeliebige Taste drücken zum Beenden...");
-                    Console.ReadKey();
-                    return;
+                    if (CmdArgs.Length > 0)
+                    {
+                        if (File.Exists(CmdArgs[0]) && Path.GetExtension(CmdArgs[0]) == ".xlsx")
+                        {
+                            //Wenn der Pfad zu einer Excel-Dateie übergebenen wurde, diese in PDF umwandeln, danach beenden
+                            Console.WriteLine("Wandle Excel-Dateie in PDF " + CmdArgs[0]);
+                            Log.Write(Log.Cat.PdfWrite, Log.Prio.LogAlways, 010100, "Wandle Excel-Datei in PDF " + CmdArgs[0]);
+                            Pdf.CreatePdf(CmdArgs[0]);
+                            Console.WriteLine("Exel-Datei " + CmdArgs[0] + " umgewandelt in PDF.\r\nBeliebige Taste drücken zum Beenden...");
+                            Console.ReadKey();
+                            return;
+                        }
+                        else if (!File.Exists(CmdArgs[0]) && Directory.Exists(CmdArgs[0]))
+                        {
+                            //Alle Excel-Dateien im übergebenen Ordner in PDF umwandeln, danach beenden
+                            Console.WriteLine("Wandle alle Excel-Dateien in PDF im Ordner " + CmdArgs[0]);
+                            Log.Write(Log.Cat.PdfWrite, Log.Prio.LogAlways, 010100, "Wandle alle Excel-Dateien in PDF im Ordner " + CmdArgs[0]);
+                            Pdf.CreatePdf4AllXlsxInDir(CmdArgs[0], false);
+                            Console.WriteLine("Exel-Dateien umgewandelt in " + CmdArgs[0] + "\r\nBeliebige Taste drücken zum Beenden...");
+                            Console.ReadKey();
+                            return;
+                        }
+                    }
                 }
-                else if (!File.Exists(CmdArgs[0]) && Directory.Exists(CmdArgs[0]))
+                catch
                 {
-                    //Alle Excel-Dateien im übergebenen Ordner in PDF umwandeln, danach beenden
-                    Console.WriteLine("Wandle alle Excel-Dateien in PDF im Ordner " + CmdArgs[0]);
-                    Log.Write(Log.Cat.PdfWrite, Log.Prio.LogAlways, 010100, "Wandle alle Excel-Dateien in PDF im Ordner " + CmdArgs[0]);
-                    Pdf.CreatePdf4AllXlsxInDir(CmdArgs[0], false);
-                    Console.WriteLine("Exel-Dateien umgewandelt in " + CmdArgs[0] + "\r\nBeliebige Taste drücken zum Beenden...");
-                    Console.ReadKey();
-                    return;
+                    Log.Write(Log.Cat.PdfWrite, Log.Prio.Error, 010118, string.Format("Fehler beim Erstellen von PDF durch Drag'n'Drop. Aufrufargumente prüfen."));
                 }
                 #endregion
 
@@ -92,7 +104,9 @@ namespace Kreutztraeger
                     return;
                 }
 
+
                 bool viewerIsRunning = Process.GetProcessesByName("view").Length != 0;
+
                 if (!viewerIsRunning)
                 {
                     Log.Write(Log.Cat.OnStart, Log.Prio.Error, 010103, "Das Programm kann nicht ohne den InTouch Viewer ausgeführt werden und wird deshalb beendet.");
@@ -148,6 +162,8 @@ namespace Kreutztraeger
                 {
                     InTouch.Is32BitSystem = false;                   
                 }
+
+
 
                 //if (!File.Exists(NativeMethods.WwheapPath))
                 //{
@@ -209,13 +225,13 @@ namespace Kreutztraeger
                 Log.Write(Log.Cat.OnStart, Log.Prio.Error, 010115, string.Format("Fehler beim initialisieren der Anwendung: Typ: {0} \r\n\t\t Fehlertext: {1}  \r\n\t\t InnerException: {2}", ex.GetType().ToString(), ex.Message, ex.InnerException));
                 return;
             }
-            #endregion
+#endregion
 
             Excel.XlFillWorkbook();
 
             Print.PrintRoutine();
 
-            #region Diese *.exe beenden   
+#region Diese *.exe beenden   
             InTouch.SetExcelAliveBit(Program.AppErrorOccured);
 
             if (AppErrorOccured)
@@ -232,7 +248,7 @@ namespace Kreutztraeger
             {
                 Tools.Wait(Tools.WaitToClose);
             }
-            #endregion
+#endregion
         }
 
     }

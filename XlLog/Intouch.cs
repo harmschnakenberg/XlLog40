@@ -124,9 +124,10 @@ namespace Kreutztraeger
                 {
                     //Rücksetzen von TimeoutBit.
                     WriteDiscTag(Program.InTouchDiscTimeOut, false);
+                    Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 050202, string.Format("Setze InTouch-Variable >{0}< = {1}.", Program.InTouchDiscTimeOut, false));
+
                     //Rücksetzen von Fehlernummer in InTouch (nicht umgesetzt)
                     //WriteIntTag(Program.InTouchDIntErrorNumber, 0);
-                    Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 050202, string.Format("Setze InTouch-Variable >{0}< = {1}.", Program.InTouchDiscResetHourCounter, false));
                 }
 
                 //Rücksetzen von Alarm-Bit _> Entfällt. Anfordeurng Hy: wird nur in InTouch zurückgesetzt.

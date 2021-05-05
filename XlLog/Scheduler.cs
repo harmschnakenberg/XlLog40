@@ -9,6 +9,7 @@ namespace Kreutztraeger
 
         public static int StartTaskIntervallMinutes { get; set; }  = 15;
         static readonly string taskName = string.Format(@"XlLog_vbs{0}", StartTaskIntervallMinutes);
+        public static bool UseTaskScheduler { get; set; } = true;
 
         /// <summary>
         /// Prüft, ob eine *.vbs-Datei und ein SchedulerTask für die automatische Ausführung vorhanden sind und erstellt diese ggf. 
@@ -16,6 +17,8 @@ namespace Kreutztraeger
         internal static void CeckOrCreateTaskScheduler() //Fehlernummern siehe Log.cs 1001ZZ
         {
             Log.Write(Log.Cat.MethodCall, Log.Prio.Info, 100101, string.Format("CeckOrCreateTaskScheduler()"));
+            
+            if (!UseTaskScheduler) return;
 
             try
             {

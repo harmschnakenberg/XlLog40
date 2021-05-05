@@ -16,7 +16,7 @@ namespace Kreutztraeger
         private static string printAppPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "PdfToPrinter.exe");
         internal static string PrintAppPath { get => printAppPath; set => printAppPath = value; }
 
-        internal static string PrinterAppArgs { get; set; } = "*Quelle*";
+        internal static string PrinterAppArgs { get; set; } = "*Quelle* pages=*Seiten*";
 
         internal static string InTouchIntPrintBitMaskDay { get; set; } = "XlLogT_Druck";
         internal static string InTouchIntPrintBitMaskMonth { get; set; } = "XlLogM_Druck";
