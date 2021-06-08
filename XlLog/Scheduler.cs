@@ -8,7 +8,7 @@ namespace Kreutztraeger
     {
 
         public static int StartTaskIntervallMinutes { get; set; }  = 15;
-        static readonly string taskName = string.Format(@"XlLog_vbs{0}", StartTaskIntervallMinutes);
+        const string taskName = "XlLog_vbs";
         public static bool UseTaskScheduler { get; set; } = true;
 
         /// <summary>
