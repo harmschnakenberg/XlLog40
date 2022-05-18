@@ -120,7 +120,7 @@ namespace Kreutztraeger
             else
             {
                 //Es ist kein Fehler aufgetreten.      
-                if (Program.AppStartedBy == "Task") // Nur, wenn aus Task heraus gestartet
+                if (Program.AlwaysResetTimeoutBit || Program.AppStartedBy == "Task") // Nur, wenn aus Task heraus gestartet
                 {
                     //Rücksetzen von TimeoutBit.
                     WriteDiscTag(Program.InTouchDiscTimeOut, false);
@@ -202,6 +202,7 @@ namespace Kreutztraeger
 
     public class NativeMethods //Fehlernummern siehe Log.cs 06YYZZ
     {
+
         //für 64-Bit Betriebssystem
         const string ptaccPath = @"C:\Program Files (x86)\Wonderware\InTouch\ptacc.dll";
         const string wwheapPath = @"C:\Program Files (x86)\Common Files\ArchestrA\wwheap.dll";
@@ -624,6 +625,7 @@ namespace Kreutztraeger
         //für 32-Bit Betriebssystem
         const string ptaccPath = @"C:\Program Files\Wonderware\InTouch\ptacc.dll";
         const string wwheapPath = @"C:\Program Files\Common Files\ArchestrA\wwheap.dll";
+
 
         public static string PtaccPath { get; } = ptaccPath;
         public static string WwheapPath { get; } = wwheapPath;

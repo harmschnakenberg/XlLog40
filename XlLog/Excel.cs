@@ -38,10 +38,10 @@ namespace Kreutztraeger
 
         #region Fields for WriteToExcelFiles
         // Minuten, die zwischen XlPosOffsetMin und 60 - XlNegOffsetMin liegen, werden nicht für Stundenwerte aufgezeichnet.
-        private static int xlPosOffsetMin = 5; //min. nach Voller (Viertel-)Stunde, die noch zu der vorherigen (Viertel-)Stunde zählen.
+        private static int xlPosOffsetMin = 2; //min. nach Voller (Viertel-)Stunde, die noch zu der vorherigen (Viertel-)Stunde zählen.
         public static int XlPosOffsetMin { get => xlPosOffsetMin; set => xlPosOffsetMin = value; }
 
-        private static int xlNegOffsetMin = 5; //min. vor Voller Stunde, die zu der kommenden vollen Stunde zählen.
+        private static int xlNegOffsetMin = 2; //min. vor Voller Stunde, die zu der kommenden vollen Stunde zählen.
         public static int XlNegOffsetMin { get => xlNegOffsetMin; set => xlNegOffsetMin = value; }
 
         public static string XlTemplateDayFilePath { get; set; } = Path.Combine(AppDir, "T_vorl.xlsx");
@@ -193,8 +193,8 @@ namespace Kreutztraeger
                         //PDF erstellen.
                         Pdf.CreatePdf4AllXlsxInDir(CeateXlFilePath(-1, true, 0, true));
 
-                        //Wenn nichtd er erste des Monats ist und keine Monatsdatei vorhanden war, könnten auch Daten im Vormonat fehlen
-                        //auskommentiert 21.07.2020 nicht notwendig, verzögetr die Programmausführung ...
+                        //Wenn nicht der erste des Monats ist und keine Monatsdatei vorhanden war, könnten auch Daten im Vormonat fehlen
+                        //auskommentiert 21.07.2020 nicht notwendig, verzögert die Programmausführung ...
                         //if (bed3 && DateTime.Now.Day > 1)
                         //{
                         //    //Prüfe auch den Vormonat
@@ -304,7 +304,12 @@ namespace Kreutztraeger
             {                
                 if (!File.Exists(xlThisMonthFilePath) || !File.Exists(xlLastYearMonthFilePath) || !File.Exists(Excel.XlTemplateMonthFilePath))
                 {
-                    Log.Write(Log.Cat.ExcelRead, Log.Prio.Warning, 040302, string.Format("Letztjahreswerte konnten nicht in die Datei {0} eingetragen werden. Es fehlen Quelldateien.\r\n\t\t\tLetztes Jahr vorhanden: {1}\r\n\t\t\tMonatsvorlage vorhanden: {2}\r\n\t\t\taktuelle Monatsdatei vorhanden: {3}", xlThisMonthFilePath, File.Exists(xlLastYearMonthFilePath), File.Exists(Excel.XlTemplateMonthFilePath), File.Exists(xlThisMonthFilePath)));
+                    Log.Write(Log.Cat.ExcelRead, Log.Prio.Warning, 040302, 
+                        string.Format($"Letztjahreswerte konnten nicht in die Datei {xlThisMonthFilePath} eingetragen werden. Es fehlen Quelldateien.\r\n\t\t\t" +
+                        $"Letztes Jahr vorhanden: \t{(File.Exists(xlLastYearMonthFilePath) ? "ja" : "nein")}\r\n\t\t\t" +
+                        $"Monatsvorlage vorhanden: \t{(File.Exists(Excel.XlTemplateMonthFilePath) ? "ja" : "nein")}\r\n\t\t\t" +
+                        $"aktuelle Monatsdatei vorhanden: {(File.Exists(xlThisMonthFilePath) ? "ja" : "nein")}")
+                        );
                     //kein Fehler
                     return;
                 }
@@ -319,16 +324,33 @@ namespace Kreutztraeger
 
                         for (int col = worksheet.Dimension.Start.Column; col <= worksheet.Dimension.End.Column; col++)
                         {
-                            //Log.Write(Log.Category.ExcelRead, 2001211232, "Spalte " + col + " = '" + worksheet.Cells[row, col].Value + "'");
+                            //Änderung 02.12.2021: Prüfung auf Hintergrundfarbe herausgenommen, da Fehler bei Badenhop, Ver und scheinbar redundant durch Formelprüfung 
+
+                            //Log.Write(Log.Cat.ExcelRead,Log.Prio.Info, 040307, "Spalte " + col + " = '" + worksheet.Cells[row, col].Value + "'");
                             //Wenn Zelle keinen Farbhintergrund hat (oder weiß oder gelb) und nicht leer ist -> TagName gefunden - (neu 21.01.2020) Wenn Zelle darüber eine Formel hat, die mit '=Datum..' beginnt, in die Tuple aufnehmen.
-                            string backgroundColor = worksheet.Cells[row, col].Style.Fill.BackgroundColor.LookupColor();
-                            if ((backgroundColor == null || backgroundColor == yellow || backgroundColor == white) && worksheet.Cells[row, col].Value != null && worksheet.Cells[row - 1, col].Formula.StartsWith("Datum") )
+                            //string backgroundColor = worksheet.Cells[row, col].Style.Fill.BackgroundColor.LookupColor();
+                            // bool colorOk = (backgroundColor == null || backgroundColor == yellow || backgroundColor == white || backgroundColor == "#FF000000");
+                            bool hasCellValue = worksheet.Cells[row, col].Value != null;
+                            bool isDateFormula = worksheet.Cells[row - 1, col].Formula.StartsWith("Datum");
+
+                            Log.Write(Log.Cat.ExcelRead, Log.Prio.Info, 040312,
+                                string.Format($"Monatsvorlage - Bedingung Spalte {col}, Zeile {row}: " +
+                                // $"Farbe {(colorOk ? "ok": "Spalte überspringen; Farbe:" + backgroundColor.ToString())}, " +
+                                $"Wert: {(hasCellValue ? "ok" : "ohne Wert")}, " +
+                                $"Datum-Formel: {(isDateFormula ? "ok" : "nicht erfüllt")}"));
+
+                            if (hasCellValue && isDateFormula) //colorOk &&
                             {
                                 tupleList.Add(new Tuple<int, int>(worksheet.Index, col));
-                                //Log.Write(Log.Category.ExcelRead, Log.Prio. 1903081317, string.Format("Kopiere Letztjahreswerte in Monatsdatei:\tBlatt: {0}\t Spalte: {1}\tWert: {2}[{3}]", worksheet.Index, col, worksheet.Cells[row, col].Value, worksheet.Cells[row - 1, col].Formula) );
+                                Log.Write(Log.Cat.ExcelRead, Log.Prio.Info, 040308, string.Format("Kopiere Letztjahreswerte in Monatsdatei:\tBlatt: {0}\t Spalte: {1}\tWert: {2}[{3}]", worksheet.Index, col, worksheet.Cells[row, col].Value, worksheet.Cells[row - 1, col].Formula));
                             }
                         }
                     }
+
+                    if (tupleList.Count == 0)
+                        Log.Write(Log.Cat.ExcelRead, Log.Prio.Warning, 040309, string.Format($"In die Monatsdatei {file1} werden keine Letzjahreswerte geschrieben."));
+                    else
+                        Log.Write(Log.Cat.ExcelRead, Log.Prio.Info, 040310, string.Format($"In die Monatsdatei {file1} werden {tupleList.Count} Letzjahreswerte geschrieben."));
                 }
 
             }
@@ -472,7 +494,7 @@ namespace Kreutztraeger
                                 }
                                 else
                                 {
-                                    if (TagName != "DoNotChangeCell")
+                                    if (TagName != "DoNotChangeCell") //"DoNotChangeCell" -> Inhalt belassen z.B. statische Texte, Formeln usw.
                                     {
                                         var result = InTouch.ReadTag(TagName);
                                         // Wenn Variable nicht vorhanden ist, wird von Intouch float.MaxValue ausgegeben.
@@ -641,8 +663,7 @@ namespace Kreutztraeger
                     excelPackage.Save();
                 }
 
-                Log.Write(Log.Cat.ExcelWrite, Log.Prio.Info, 040605, "Bearbeitung" +
-                    " Monatsdatei abgeschlossen.");
+                Log.Write(Log.Cat.ExcelWrite, Log.Prio.Info, 040605, "Bearbeitung Monatsdatei abgeschlossen.");
 
                 //PDF erstellen.
                 Pdf.CreatePdf(xlMonthFilePath);
@@ -904,7 +925,6 @@ namespace Kreutztraeger
             catch (Exception ex)
             {
                 Log.Write(Log.Cat.ExcelRead, Log.Prio.Error, 040904, string.Format("Fehler beim finden der Zeile >{0}< in Excel-Datei: {1}\r\n\t\t\t Typ: {2}\r\n\t\t\t Fehlertext: {3}\r\n\t\t\t InnerException: {4}\r\n\t\t\t StackTrace: {5}\r\n\t\t\t Source: {6}\r\n\t\t\t GetBaseException: {7}", searchValue, xlFilePath, ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace, ex.Source, ex.GetBaseException().Message ));
-                //Program.AppErrorOccured = true;
                 return -1;
             }
         }

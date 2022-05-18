@@ -20,15 +20,15 @@ namespace Kreutztraeger
         private static void CreateConfig(string ConfigFileName) //Fehlernummern siehe Log.cs 0201ZZ
         {
             Log.Write(Log.Cat.MethodCall, Log.Prio.LogAlways, 020101, string.Format("CreateConfig({0})", ConfigFileName));
-                                                    
+
             string configPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ConfigFileName);
             using (StreamWriter w = File.AppendText(configPath))
             {
                 try
                 {
                     string _64Bit = InTouch.Is32BitSystem ? "32 Bit" : "64 Bit";
-                                         
-                    w.WriteLine("[" + _64Bit + " öäü " + w.Encoding.EncodingName + ", Build " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version +"]\r\n" +
+
+                    w.WriteLine("[" + _64Bit + " öäü " + w.Encoding.EncodingName + ", Build " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version + "]\r\n" +
                                 "\r\n[Intern]\r\n" +
                                 ";DebugWord=" + Log.DebugWord + "\r\n" +
                                 ";WaitToClose=" + Tools.WaitToClose + "\r\n" +
@@ -36,7 +36,8 @@ namespace Kreutztraeger
                                 ";StartTaskIntervallMinutes=" + Scheduler.StartTaskIntervallMinutes + "\r\n" +
                                 // ";DataSource=" + Sql.DataSource + "\r\n" +
                                 ";;DataSource=" + Environment.MachineName + "\r\n" +
-                                ";UseTaskScheduler=" + (Scheduler.UseTaskScheduler ? "1":"0") + "\r\n" +
+                                ";UseTaskScheduler=" + (Scheduler.UseTaskScheduler ? "1" : "0") + "\r\n" +
+                                ";AlwaysResetTimeoutBit=" + (Program.AlwaysResetTimeoutBit ? "1" : "0") + "\r\n" +
 
                                 "\r\n[InTouch]\r\n" +
                                 ";InTouchDiscFlag=" + Program.InTouchDiscXlLogFlag + "\r\n" +
@@ -63,7 +64,7 @@ namespace Kreutztraeger
                                 ";XlNegOffsetMin=" + Excel.XlNegOffsetMin + "\r\n" +
 
                                 "\r\n[PDF]\r\n" +
-                                ";XlImmediatelyCreatePdf=" + (Excel.XlImmediatelyCreatePdf ? "1" : "0") + "\r\n"  +
+                                ";XlImmediatelyCreatePdf=" + (Excel.XlImmediatelyCreatePdf ? "1" : "0") + "\r\n" +
                                 ";PdfConvertStartHour=" + Pdf.PdfConvertStartHour + "\r\n" +
                                 ";PdfConverterPath=" + Pdf.PdfConverterPath + "\r\n" +
                                 ";;PdfConverterPath=D:\\XlLog\\XlOffice2Pdf.exe\r\n" +
@@ -207,6 +208,11 @@ namespace Kreutztraeger
                     configVal = TagValueFromConfig(dict, "StartTaskIntervallMinutes");
                     if (int.TryParse(configVal, out i))
                         Scheduler.StartTaskIntervallMinutes = i;
+
+                    configVal = TagValueFromConfig(dict, "AlwaysResetTimeoutBit");
+                    if (int.TryParse(configVal, out i))
+                        Program.AlwaysResetTimeoutBit = (i > 0);
+
                     #endregion
                     #region String
                     configVal = TagValueFromConfig(dict, "InTouchDiscFlag");
@@ -346,7 +352,33 @@ namespace Kreutztraeger
             catch
             {
                 return Sql.XmlDir;
-            }                   
+            }
         }
+
+        /// <summary>
+        /// Liest eine Umgebungsvariable aus oder erstellt sie, wenn sie nicht vorhanden ist.
+        /// </summary>
+        /// <param name="envVarName">Windows-Umgebungsvariable für aktuellen Benutzer</param>
+        /// <param name="envVarValue">Wert der Windows-Umgebungsvariablen</param>
+        /// <returns></returns>
+        internal static string SetEnvironmentVariables(string envVarName, string envVarValue)
+        {
+            // Check whether the environment variable exists.
+            string value = Environment.GetEnvironmentVariable(envVarName, EnvironmentVariableTarget.User);
+            // If necessary, create it.
+            if (value == null)
+            {
+                Environment.SetEnvironmentVariable(envVarName, envVarValue, EnvironmentVariableTarget.User);
+                
+                // Now retrieve it.
+                value = Environment.GetEnvironmentVariable(envVarName, EnvironmentVariableTarget.User);
+
+                Log.Write(Log.Cat.OnStart, Log.Prio.LogAlways, 020601, $"Setze Umgebungsvariable '{envVarName}'='{value}'");                
+            }
+
+            return value;
+        }
+
+
     }
 }

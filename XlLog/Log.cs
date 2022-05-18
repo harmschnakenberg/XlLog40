@@ -102,22 +102,22 @@ namespace Kreutztraeger
             //Directory.CreateDirectory(logPath);
             logPath = Path.Combine(logPath, string.Format("Log_{0}.txt", DateTime.Now.ToString("yyyyMM")));
 
-            using (StreamWriter w = File.AppendText(logPath))
+            try
             {
-                try
+                using (StreamWriter w = File.AppendText(logPath))
                 {
                     w.WriteLine("{0:00} {1} {2}\t{3}", DateTime.Now.Day, DateTime.Now.ToLongTimeString(), errorNo, logMessage);
-
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("FEHLER Logging:");
-                    Console.WriteLine("Typ:\t\t" + ex.GetType().ToString());
-                    Console.WriteLine("Message:\t" + ex.Message);
-                    Console.WriteLine("InnerException:\t" + ex.InnerException);
-                    Console.WriteLine("StackTrace:\t" + ex.StackTrace);
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FEHLER Logging:");
+                Console.WriteLine("Typ:\t\t" + ex.GetType().ToString());
+                Console.WriteLine("Message:\t" + ex.Message);
+                Console.WriteLine("InnerException:\t" + ex.InnerException);
+                Console.WriteLine("StackTrace:\t" + ex.StackTrace);
+            }
+            
 
         }
 

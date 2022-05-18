@@ -293,10 +293,10 @@ namespace Kreutztraeger
                     worksheet.Column(6).Style.Font.Name = "Arial";
                     worksheet.Column(6).Style.Font.Size = 9;
 
-                    //Zustand
-                    worksheet.Column(7).Width = 11;
-                    worksheet.Column(7).Style.Font.Name = "Arial";
-                    worksheet.Column(7).Style.Font.Size = 9;
+                    ////Zustand
+                    //worksheet.Column(7).Width = 11;
+                    //worksheet.Column(7).Style.Font.Name = "Arial";
+                    //worksheet.Column(7).Style.Font.Size = 9;
 
                     //Gruppe
                     worksheet.Column(8).Width = 13;
@@ -355,14 +355,14 @@ namespace Kreutztraeger
                     //worksheet.Cells[1, 1].AddComment(DBGruppe + " (" + DBGruppeComment + ") von " + StartTime.ToString("g") + " bis " + EndTime.ToString("g"), (string)InTouch.ReadTag("$Operator"));
 
                     //Überschriften
-                    worksheet.Cells[1, 1].Value = dt.Columns[0].Caption;
-                    worksheet.Cells[1, 2].Value = dt.Columns[1].Caption;
-                    worksheet.Cells[1, 3].Value = dt.Columns[2].Caption;
-                    worksheet.Cells[1, 4].Value = dt.Columns[3].Caption;
-                    worksheet.Cells[1, 5].Value = dt.Columns[4].Caption;
-                    worksheet.Cells[1, 6].Value = dt.Columns[5].Caption;
-                    worksheet.Cells[1, 7].Value = dt.Columns[6].Caption;
-                    worksheet.Cells[1, 8].Value = dt.Columns[7].Caption;
+                    worksheet.Cells[1, 1].Value = dt.Columns[0].Caption; //Zeit
+                    worksheet.Cells[1, 2].Value = dt.Columns[1].Caption; //Prio
+                    worksheet.Cells[1, 3].Value = dt.Columns[2].Caption; //Benutzer
+                    worksheet.Cells[1, 4].Value = dt.Columns[3].Caption; //Beschreibung
+                    worksheet.Cells[1, 5].Value = dt.Columns[4].Caption; //Wert
+                    worksheet.Cells[1, 6].Value = dt.Columns[5].Caption; //Altwert
+                    //worksheet.Cells[1, 7].Value = dt.Columns[6].Caption; //Zustand
+                    worksheet.Cells[1, 8].Value = dt.Columns[7].Caption; //Gruppe
                     worksheet.Cells[1, 1, 1, 8].Style.Font.Bold = true;
 
                     //Werte
