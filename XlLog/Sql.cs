@@ -12,8 +12,8 @@ namespace Kreutztraeger
     class Sql //Fehlernummern siehe Log.cs 11YYZZ
     {        
         public static string XmlDir { get; set; } = @"D:\Into_110\PROJEKTNAME\XML";
-        public static string DataSource { get; set; } = @".\SQLExpress";
-        static readonly string SqlConnString  = string.Format( @"Data Source={0}; Initial Catalog = WWALMDB; User ID=wwAdmin; Password=wwAdmin", DataSource);     
+        public static string DataSource { get; set; } = ".\\SQLExpress";
+
         //static readonly string SqlConnString = string.Format(@"ODBC; DRIVER=SQL Server; SERVER=.\sqlexpress; UID=wwuser; PWD=wwuser; DATABASE=WWALMDB", DataSource); // UNGÜLTIG!
 
         static string DBGruppe = "A00_General";
@@ -24,6 +24,11 @@ namespace Kreutztraeger
         static DateTime EndTime = DateTime.Now;
         static int DBvonPrio = 1;
         static int DBbisPrio = 900;
+
+        private static string GetSqlConnString()
+        {
+            return $"Data Source={DataSource}; Initial Catalog=WWALMDB; User ID=wwAdmin; Password=wwAdmin";
+        }
 
         /// <summary>
         /// Erzeugt eine SQL-Abfrage der Alarmdatenbank und speichert das Ergebnis in einer Excel-Tabelle.
@@ -40,7 +45,10 @@ namespace Kreutztraeger
                 string sqlQuery = SqlQueryString();
                 if (sqlQuery.Length < 1) return;
 
-                DataTable dt = SqlQyery(SqlConnString, sqlQuery);
+#if DEBUG
+                Log.Write(Log.Cat.SqlQuery, Log.Prio.Info, 110104, $"SQL-Abfrage: DataSource={DataSource}, SqlConnString={GetSqlConnString()}");
+#endif
+                DataTable dt = SqlQyery(GetSqlConnString(), sqlQuery);
 
                 string almPrintFilePath = Path.Combine(Excel.XlArchiveDir, "Listen");
                 Directory.CreateDirectory(almPrintFilePath);
@@ -63,7 +71,7 @@ namespace Kreutztraeger
             }
             catch (Exception ex)
             {
-                Log.Write(Log.Cat.SqlQuery, Log.Prio.Error, 110103, string.Format("Fehler beim Auslesen der AlmDatenbank: Typ: {0} \r\n\t\t\t\tFehlertext: {1}  \r\n\t\t\t\tInnerException: {2}  \r\n\t\t\t\tStackTrace: {3}\r\n\r\n\r\n CONSTRING: {4}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace, SqlConnString));
+                Log.Write(Log.Cat.SqlQuery, Log.Prio.Error, 110103, string.Format("Fehler beim Auslesen der AlmDatenbank: Typ: {0} \r\n\t\t\t\tFehlertext: {1}  \r\n\t\t\t\tInnerException: {2}  \r\n\t\t\t\tStackTrace: {3}\r\n\r\n\r\n CONSTRING: {4}", ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace, GetSqlConnString()));
                 Program.AppErrorOccured = true;
             }
         }
@@ -207,7 +215,9 @@ namespace Kreutztraeger
 
             using (SqlConnection con = new SqlConnection(ConnString))
             {
-             
+#if DEBUG
+                Log.Write(Log.Cat.SqlQuery, Log.Prio.Info, 110400, $"ConnString={ConnString}");
+#endif
                 try // Normale Benutzeranmeldung
                 {
                     con.Open();
@@ -230,7 +240,7 @@ namespace Kreutztraeger
                 {
                     Log.Write(Log.Cat.SqlQuery, Log.Prio.Error, 110402, string.Format("Verbindung zu Sql Server >{0}< konnte nicht aufgebaut werden.", DataSource));
                 }
-
+                                
                 using (SqlCommand cmd = new SqlCommand(SqlQuery, con))
                 {                   
                     // create data adapter
@@ -294,12 +304,13 @@ namespace Kreutztraeger
                     worksheet.Column(6).Style.Font.Size = 9;
 
                     ////Zustand
-                    //worksheet.Column(7).Width = 11;
-                    //worksheet.Column(7).Style.Font.Name = "Arial";
-                    //worksheet.Column(7).Style.Font.Size = 9;
+                    //worksheet.Column(7).Width = 2;
+                    worksheet.Column(7).Style.Font.Name = "Arial";
+                    worksheet.Column(7).Style.Font.Size = 9;
+                    worksheet.Column(7).Hidden = true;
 
                     //Gruppe
-                    worksheet.Column(8).Width = 13;
+                    worksheet.Column(8).Width = 16;
                     worksheet.Column(8).Style.Font.Name = "Arial";
                     worksheet.Column(8).Style.Font.Size = 9;
 

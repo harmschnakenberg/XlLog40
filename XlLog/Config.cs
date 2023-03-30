@@ -260,6 +260,10 @@ namespace Kreutztraeger
                     if (configVal != null)
                         Print.PrinterAppArgs = configVal;
 
+                    configVal = TagValueFromConfig(dict,nameof(Sql.DataSource));
+                    if (configVal != null)                    
+                        Sql.DataSource = configVal;
+                             
                     configVal = TagValueFromConfig(dict, "XlPassword");
                     if (configVal != null)
                     {
@@ -275,9 +279,7 @@ namespace Kreutztraeger
                         }
                     }
 
-                    configVal = TagValueFromConfig(dict, "DataSource");
-                    if (configVal != null)
-                        Sql.DataSource = configVal;
+  
                     #endregion
                 }
 

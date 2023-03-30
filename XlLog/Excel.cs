@@ -382,6 +382,11 @@ namespace Kreutztraeger
                     excelPackage3.Save();
                 }
             }
+            catch (System.IndexOutOfRangeException ex_index)
+            {
+                Log.Write(Log.Cat.ExcelWrite, Log.Prio.LogAlways, 040311,
+                    string.Format("Fehler beim Kopieren der Vorjahreswerte: Die Spaltenbelegung stimmt nicht mit dem Vorjahr überein.\r\n" + ex_index));
+            }
             catch (Exception ex)
             {
                 Log.Write(Log.Cat.ExcelWrite, Log.Prio.Error, 040305, string.Format("Fehler beim Kopieren der Vorjahreswerte in die Excel-Monats-Datei : {0} \r\n\t\t  Typ: {1} \r\n\t\t Fehlertext: {2}  \r\n\t\t InnerException: {3} \r\n\t\t StackTrace: {4}", 0, ex.GetType().ToString(), ex.Message, ex.InnerException, ex.StackTrace));
@@ -401,7 +406,7 @@ namespace Kreutztraeger
             //Warte auf Berechnung in InTouch (D.S. $Minute) und Bestimme Mittelwerte.
             if (Program.AppStartedBy == "Task" && DateTime.Now.Second < Tools.WaitForScripts)
             {
-                Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 040402, "Warte auf InTouch-Skripte.");
+                Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 040402, "Warte auf InTouch-Skript D.S. $Minute.");
                 Tools.Wait(Tools.WaitForScripts);
             }
 
@@ -411,6 +416,9 @@ namespace Kreutztraeger
 
             if (fullHourTimeframe)
             {
+                //neu 03.11.2022, Frage den Minutenzähler ab, um die Mittelwertberechnung nachprüfen zu können.
+                _ = InTouch.ReadTag("MinutenZähler");
+
                 // Wenn Zeit um Stundensprung, ermittle Mittelwerte in InTouch; Setzte ExBestStdWerte
                 Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 040403, string.Format("Setze InTouch-Variable >{0}< = {1}.", Program.InTouchDiscSetCalculations, true));
                 InTouch.WriteDiscTag(Program.InTouchDiscSetCalculations, true);
@@ -424,7 +432,7 @@ namespace Kreutztraeger
             
             XlDayFileWriteRange(xlDayFilePath, items);
 
-            // Tools.Wait(1);
+            Tools.Wait((int)Tools.WaitForScripts/4);
 
             if (fullHourTimeframe)
             {
@@ -827,7 +835,12 @@ namespace Kreutztraeger
                                 );
 
                             worksheet.Cells[currentRowNo, (int)XlShockCol.EndTime].Value = DateTime.Now.ToLongTimeString();
-                            TimeSpan startTime = DateTime.Parse(worksheet.Cells[currentRowNo, (int)XlShockCol.StartTime].Text).TimeOfDay;
+                            string strStartTime = worksheet.Cells[currentRowNo, (int)XlShockCol.StartTime].Text;
+                            if (!TimeSpan.TryParse(strStartTime, out TimeSpan startTime)) //geändert 07.03.2023
+                            {
+                                Log.Write(Log.Cat.ExcelShock, Log.Prio.Warning, 040709, $"Der Beginn des Schockkühlvorgangs '{strStartTime}' in Zeile {currentRowNo} konnte nicht als Zeit gelesen werden.");
+                                startTime = DateTime.Now.TimeOfDay;
+                            }
                             worksheet.Cells[currentRowNo, (int)XlShockCol.ShockDuration].Value = DateTime.Now.Add(-startTime).ToShortTimeString();
                             worksheet.Cells[currentRowNo, (int)XlShockCol.ProductEndTemp].Value = (ProductEndTemp == float.MaxValue) ? (object)"TagName?" : ProductEndTemp;
                             worksheet.Cells[currentRowNo, (int)XlShockCol.ProductMinTemp].Value = (SchockMinXK == float.MaxValue) ? (object)"TagName?" : SchockMinXK;
