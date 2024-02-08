@@ -330,8 +330,9 @@ namespace Kreutztraeger
                             //Wenn Zelle keinen Farbhintergrund hat (oder weiß oder gelb) und nicht leer ist -> TagName gefunden - (neu 21.01.2020) Wenn Zelle darüber eine Formel hat, die mit '=Datum..' beginnt, in die Tuple aufnehmen.
                             //string backgroundColor = worksheet.Cells[row, col].Style.Fill.BackgroundColor.LookupColor();
                             // bool colorOk = (backgroundColor == null || backgroundColor == yellow || backgroundColor == white || backgroundColor == "#FF000000");
+                            
                             bool hasCellValue = worksheet.Cells[row, col].Value != null;
-                            bool isDateFormula = worksheet.Cells[row - 1, col].Formula.StartsWith("Datum");
+                            bool isDateFormula = worksheet.Cells[row - 1, col].Formula.Contains("Datum"); //Änderung 08.02.2024 .StartsWith() ersetzt durch .Contains(), da der Mappenname in der Formel vor 'Datum' stehen kann.
 
                             Log.Write(Log.Cat.ExcelRead, Log.Prio.Info, 040312,
                                 string.Format($"Monatsvorlage - Bedingung Spalte {col}, Zeile {row}: " +
@@ -417,10 +418,11 @@ namespace Kreutztraeger
             if (fullHourTimeframe)
             {
                 //neu 03.11.2022, Frage den Minutenzähler ab, um die Mittelwertberechnung nachprüfen zu können.
-                _ = InTouch.ReadTag("MinutenZähler");
+                var minCounter = (int)InTouch.ReadTag("MinutenZähler");
 
                 // Wenn Zeit um Stundensprung, ermittle Mittelwerte in InTouch; Setzte ExBestStdWerte
-                Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 040403, string.Format("Setze InTouch-Variable >{0}< = {1}.", Program.InTouchDiscSetCalculations, true));
+                // geändert 12.06.2023 Minutenzähler protokollieren
+                Log.Write(Log.Cat.InTouchVar, Log.Prio.Info, 040403, $"Setze InTouch-Variable >{Program.InTouchDiscSetCalculations}< = {true} bei Minutenzähler = {minCounter}");
                 InTouch.WriteDiscTag(Program.InTouchDiscSetCalculations, true);
 
                 //neu 4.5.2021: Warte nochmal, weil Skript für Mittelwerte bis zu 5 sek benötigt

@@ -131,7 +131,8 @@ namespace Kreutztraeger
                 }
 
                 //Rücksetzen von Alarm-Bit _> Entfällt. Anfordeurng Hy: wird nur in InTouch zurückgesetzt.
-                //WriteDiscTag(Program.InTouchDiscAlarm, false);               
+                //21.08.2023 Hykreu: Wieder zurück: XlLog soll Alarm in InTouch zurücksetzten.
+                WriteDiscTag(Program.InTouchDiscAlarm, false);               
             }
         }
 

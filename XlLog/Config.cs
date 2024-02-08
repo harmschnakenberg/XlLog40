@@ -133,11 +133,11 @@ namespace Kreutztraeger
                     if (dict.Count == 0) return;
 
                     #region Dateipfade
-                    string configVal = TagValueFromConfig(dict, "XlTemplateDayFilePath");
+                    string configVal = TagValueFromConfig(dict, nameof(Excel.XlTemplateDayFilePath));
                     if (File.Exists(configVal))
                         Excel.XlTemplateDayFilePath = configVal;
 
-                    configVal = TagValueFromConfig(dict, "XlTemplateMonthFilePath");
+                    configVal = TagValueFromConfig(dict, nameof(Excel.XlTemplateMonthFilePath));
                     if (File.Exists(configVal))
                         Excel.XlTemplateMonthFilePath = configVal;
                     #endregion
@@ -159,57 +159,57 @@ namespace Kreutztraeger
                         Print.PrintAppPath = configVal;
                     #endregion
                     #region Integer
-                    configVal = TagValueFromConfig(dict, "XlDayFileFirstRowToWrite");
+                    configVal = TagValueFromConfig(dict, nameof(Excel.XlDayFileFirstRowToWrite));
                     if (int.TryParse(configVal, out int i))
                         Excel.XlDayFileFirstRowToWrite = i;
 
-                    configVal = TagValueFromConfig(dict, "DebugWord");
+                    configVal = TagValueFromConfig(dict, nameof(Log.DebugWord));
                     if (int.TryParse(configVal, out i))
                         Log.DebugWord = i;
 
-                    configVal = TagValueFromConfig(dict, "XlPosOffsetMin");
+                    configVal = TagValueFromConfig(dict, nameof(Excel.XlPosOffsetMin));
                     if (int.TryParse(configVal, out i))
                         Excel.XlPosOffsetMin = i;
 
-                    configVal = TagValueFromConfig(dict, "XlNegOffsetMin");
+                    configVal = TagValueFromConfig(dict, nameof(Excel.XlNegOffsetMin));
                     if (int.TryParse(configVal, out i))
                         Excel.XlNegOffsetMin = i;
 
-                    configVal = TagValueFromConfig(dict, "PdfConvertStartHour");
+                    configVal = TagValueFromConfig(dict, nameof(Pdf.PdfConvertStartHour));
                     if (int.TryParse(configVal, out i))
                         Pdf.PdfConvertStartHour = i;
 
-                    configVal = TagValueFromConfig(dict, "WaitToClose");
+                    configVal = TagValueFromConfig(dict, nameof(Tools.WaitToClose));
                     if (int.TryParse(configVal, out i))
                         Tools.WaitToClose = i;
 
-                    configVal = TagValueFromConfig(dict, "WaitForScripts");
+                    configVal = TagValueFromConfig(dict, nameof(Tools.WaitForScripts));
                     if (int.TryParse(configVal, out i))
                         Tools.WaitForScripts = i;
 
-                    configVal = TagValueFromConfig(dict, "PrintStartHour");
+                    configVal = TagValueFromConfig(dict, nameof(Print.PrintStartHour));
                     if (int.TryParse(configVal, out i))
                         Print.PrintStartHour = i;
 
-                    configVal = TagValueFromConfig(dict, "XlImmediatelyCreatePdf");
+                    configVal = TagValueFromConfig(dict, nameof(Excel.XlImmediatelyCreatePdf));
                     if (int.TryParse(configVal, out i))
                     {
                         if (i > 0) Excel.XlImmediatelyCreatePdf = true;
                         else Excel.XlImmediatelyCreatePdf = false;
                     }
 
-                    configVal = TagValueFromConfig(dict, "UseTaskSheduler");
+                    configVal = TagValueFromConfig(dict, nameof(Scheduler.UseTaskScheduler));
                     if (int.TryParse(configVal, out i))
                     {
                         if (i > 0) Scheduler.UseTaskScheduler = true;
                         else Scheduler.UseTaskScheduler = false;
                     }
 
-                    configVal = TagValueFromConfig(dict, "StartTaskIntervallMinutes");
+                    configVal = TagValueFromConfig(dict, nameof(Scheduler.StartTaskIntervallMinutes));
                     if (int.TryParse(configVal, out i))
                         Scheduler.StartTaskIntervallMinutes = i;
 
-                    configVal = TagValueFromConfig(dict, "AlwaysResetTimeoutBit");
+                    configVal = TagValueFromConfig(dict, nameof(Program.AlwaysResetTimeoutBit));
                     if (int.TryParse(configVal, out i))
                         Program.AlwaysResetTimeoutBit = (i > 0);
 
@@ -219,36 +219,36 @@ namespace Kreutztraeger
                     if (configVal != null)
                         Program.InTouchDiscXlLogFlag = dict["InTouchDiscFlag"];
 
-                    configVal = TagValueFromConfig(dict, "InTouchDiscAlarm");
+                    configVal = TagValueFromConfig(dict, nameof(Program.InTouchDiscAlarm));
                     if (configVal != null)
                         Program.InTouchDiscAlarm = dict["InTouchDiscAlarm"];
 
-                    configVal = TagValueFromConfig(dict, "InTouchDiscTimeOut");
+                    configVal = TagValueFromConfig(dict, nameof(Program.InTouchDiscTimeOut));
                     if (configVal != null)
                         Program.InTouchDiscTimeOut = dict["InTouchDiscTimeOut"];
 
 
-                    configVal = TagValueFromConfig(dict, "InTouchDiscSetCalculations");
+                    configVal = TagValueFromConfig(dict, nameof(Program.InTouchDiscSetCalculations));
                     if (configVal != null)
                         Program.InTouchDiscSetCalculations = dict["InTouchDiscSetCalculations"];
 
-                    configVal = TagValueFromConfig(dict, "InTouchDiscResetHourCounter");
+                    configVal = TagValueFromConfig(dict, nameof(Program.InTouchDiscResetHourCounter));
                     if (configVal != null)
                         Program.InTouchDiscResetHourCounter = dict["InTouchDiscResetHourCounter"];
 
-                    configVal = TagValueFromConfig(dict, "InTouchDiscResetQuarterHourCounter");
+                    configVal = TagValueFromConfig(dict, nameof(Program.InTouchDiscResetQuarterHourCounter));
                     if (configVal != null)
                         Program.InTouchDiscResetQuarterHourCounter = dict["InTouchDiscResetQuarterHourCounter"];
 
-                    configVal = TagValueFromConfig(dict, "InTouchDIntErrorNumber");
+                    configVal = TagValueFromConfig(dict, nameof(Program.InTouchDIntErrorNumber));
                     if (configVal != null)
                         Program.InTouchDIntErrorNumber = configVal;
 
-                    configVal = TagValueFromConfig(dict, "InTouchIntPrintBitMaskDay");
+                    configVal = TagValueFromConfig(dict, nameof(Print.InTouchIntPrintBitMaskDay));
                     if (configVal != null)
                         Print.InTouchIntPrintBitMaskDay = configVal;
 
-                    configVal = TagValueFromConfig(dict, "InTouchIntPrintBitMaskMonth");
+                    configVal = TagValueFromConfig(dict, nameof(Print.InTouchIntPrintBitMaskMonth));
                     if (configVal != null)
                         Print.InTouchIntPrintBitMaskMonth = configVal;
 
@@ -256,7 +256,7 @@ namespace Kreutztraeger
                     if (configVal != null)
                         Pdf.PdfConverterArgs = configVal;
 
-                    configVal = TagValueFromConfig(dict, "PrintAppArgs");
+                    configVal = TagValueFromConfig(dict, nameof(Print.PrinterAppArgs));
                     if (configVal != null)
                         Print.PrinterAppArgs = configVal;
 
@@ -264,7 +264,7 @@ namespace Kreutztraeger
                     if (configVal != null)                    
                         Sql.DataSource = configVal;
                              
-                    configVal = TagValueFromConfig(dict, "XlPassword");
+                    configVal = TagValueFromConfig(dict, nameof(Excel.XlPassword));
                     if (configVal != null)
                     {
                         if (configVal.StartsWith("\"") && configVal.EndsWith("\""))
