@@ -1097,6 +1097,7 @@ namespace Kreutztraeger
                         {
                             //Wenn keine Hintergrundfarbe oder weiß oder gelb gesetzt ist
                             string backgroundColor = worksheet.Cells[row, col].Style.Fill.BackgroundColor.Rgb; // .LookupColor(); funktioniert nicht!
+                            bool isFormula = worksheet.Cells[row, col].Formula.Length > 0;
 
                             if (backgroundColor == null || backgroundColor == yellow || backgroundColor == white)
                             {
@@ -1104,6 +1105,8 @@ namespace Kreutztraeger
                                 worksheet.Cells[row, col].Style.Font.Color.SetColor(System.Drawing.Color.Black);
                                 worksheet.Cells[row, col].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.None;
 
+                                if (isFormula)
+                                    continue;
                                 if (col == 1)
                                 {
                                     //Erste Spalte in erster (Schreib-)Zeile hat keinen Farbhintergrund => Schockkühler-Blatt
@@ -1114,6 +1117,10 @@ namespace Kreutztraeger
                                     // .Clear() löscht die Formatierung, daher null setzen
                                     worksheet.Cells[row, col].Value = null;
                                 }
+                            }
+                            else if (isFormula)
+                            {
+                                Log.Write(Log.Cat.ExcelRead, Log.Prio.Info, 041204, string.Format("Blatt '{0}' Zeile {1} Spalte {2} enthält die Formel '{3}'", worksheet.Name, row, col, worksheet.Cells[row, col].Formula));
                             }
                             else
                             {
